@@ -266,6 +266,15 @@ theorem case_odd {p : ℕ} (hp : p.Prime) (hodd : Odd p) (K : Type*) [Field K] [
 there is a positive `n` and a `ℚ`-algebra embedding `K → ℚ(ζ_n)`. -/
 theorem abelian_subset_cyclotomic (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K] :
     IsContainedInCyclotomic K := by
-  sorry
+  apply reduction_prime_power ?_ K
+  intro K' _ _ _ hdeg
+  rcases hdeg with ⟨p, m, hp, hdeg'⟩
+  refine reduction_single_prime hp ?_ K' hdeg'
+  intro K'' _ _ _ hdeg'' hram''
+  rcases hdeg'' with ⟨m', hdeg''⟩
+  by_cases h2 : p = 2
+  · subst h2; exact case_two K'' hdeg'' hram''
+  · have hodd : Odd p := hp.odd_of_ne_two h2
+    exact case_odd hp hodd K'' hdeg'' hram''
 
 end KroneckerWeber
