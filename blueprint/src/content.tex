@@ -32,6 +32,149 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
   ramifies).
 \end{proof}
 
+\section{Higher ramification groups and Hilbert's formula}
+
+Throughout this section $L/K$ is a Galois extension of number fields with rings
+of integers $S = \mathcal{O}_L$ and $R = \mathcal{O}_K$, $Q$ is a prime of $S$
+lying over a prime $P$ of $R$, and $p$ is the rational prime below $Q$. Write
+$D = D(Q \mid P)$ for the decomposition group and $E = E(Q \mid P)$ for the
+inertia group, so $|E| = e(Q \mid P)$. This section develops the lower-numbering
+ramification filtration and Hilbert's different formula, which the ramification
+estimates in the later sections rely on.
+
+\begin{definition}[Higher ramification groups]
+  \label{def:ramification-groups}
+  \lean{KroneckerWeber.ramificationGroup}
+  For $m \ge 0$ the $m$th \emph{ramification group} (lower numbering) is
+  \[
+    V_m(Q \mid P) = \{\sigma \in E : \sigma(x) \equiv x \pmod{Q^{m+1}}
+      \text{ for all } x \in S\}.
+  \]
+  These form a descending chain $E = V_0 \supseteq V_1 \supseteq V_2 \supseteq
+  \cdots$ of normal subgroups of $D$ with $\bigcap_m V_m = \{1\}$.
+\end{definition}
+
+\begin{lemma}[Uniformizer criterion]
+  \label{lem:ramif-uniformizer}
+  \lean{KroneckerWeber.mem_ramificationGroup_iff}
+  \uses{def:ramification-groups}
+  Fix $\pi \in Q \setminus Q^2$. For $\sigma \in E$ and $m \ge 0$,
+  \[
+    \sigma \in V_m(Q \mid P) \iff \sigma(\pi) \equiv \pi \pmod{Q^{m+1}}.
+  \]
+\end{lemma}
+\begin{proof}
+  \uses{def:ramification-groups}
+  If $\sigma \in V_i \setminus V_{i+1}$ with $i \ge 0$, then $\sigma(\pi)
+  \equiv \pi \pmod{Q^{m+1}}$ holds precisely when $m \le i$. Since membership in
+  $V_m$ is characterized by congruence modulo $Q^{m+1}$ on all of $S$, and $S$
+  is generated over the relevant local ring by $\pi$, testing on $\pi$ alone
+  suffices.
+\end{proof}
+
+\begin{lemma}[Tame quotient embeds in the residue units]
+  \label{lem:tame-quotient}
+  \lean{KroneckerWeber.inertia_quotient_ramificationGroup_one}
+  \uses{lem:ramif-uniformizer}
+  Fix $\pi \in Q \setminus Q^2$. For $\sigma \in E$ choose $\alpha_\sigma \in S$
+  with $\sigma(\pi) \equiv \alpha_\sigma \pi \pmod{Q^2}$; then $\alpha_\sigma$ is
+  determined mod $Q$, and $\sigma \mapsto \alpha_\sigma \bmod Q$ is a
+  homomorphism $E \to (S/Q)^\times$ with kernel $V_1$. Hence $E/V_1$ is cyclic
+  of order dividing $|S/Q| - 1$.
+\end{lemma}
+\begin{proof}
+  \uses{lem:ramif-uniformizer}
+  Existence and uniqueness of $\alpha_\sigma \bmod Q$ follow from the Chinese
+  Remainder Theorem applied to $\pi S = QI$ with $I$ coprime to $Q$. From
+  $\sigma\tau(\pi) \equiv \alpha_\sigma \alpha_\tau \pi \pmod{Q^2}$ one gets
+  $\alpha_{\sigma\tau} \equiv \alpha_\sigma \alpha_\tau \pmod{Q}$, so the map is
+  a homomorphism; by Lemma~\ref{lem:ramif-uniformizer} its kernel is exactly
+  $V_1$. A finite subgroup of $(S/Q)^\times$ is cyclic, giving the order bound.
+\end{proof}
+
+\begin{lemma}[Wild quotients embed in the residue field]
+  \label{lem:wild-quotient}
+  \lean{KroneckerWeber.ramificationGroup_quotient_succ}
+  \uses{lem:ramif-uniformizer}
+  Fix $\pi \in Q \setminus Q^2$ and $m \ge 2$. For $\sigma \in V_{m-1}$ choose
+  $\alpha_\sigma \in S$ with $\sigma(\pi) \equiv \pi + \alpha_\sigma \pi^m
+  \pmod{Q^{m+1}}$; then $\alpha_\sigma$ is determined mod $Q$, and $\sigma
+  \mapsto \alpha_\sigma \bmod Q$ is a homomorphism $V_{m-1} \to (S/Q, +)$ with
+  kernel $V_m$. Hence $V_{m-1}/V_m$ is an elementary abelian $p$-group.
+\end{lemma}
+\begin{proof}
+  \uses{lem:ramif-uniformizer}
+  Here $\pi^m \in Q^m \setminus Q^{m+1}$. The relation $\sigma\tau(\pi) \equiv
+  \pi + (\alpha_\sigma + \alpha_\tau)\pi^m \pmod{Q^{m+1}}$ shows
+  $\alpha_{\sigma\tau} \equiv \alpha_\sigma + \alpha_\tau \pmod{Q}$, so the map
+  is additive; its kernel is $V_m$ by Lemma~\ref{lem:ramif-uniformizer}. Thus
+  $V_{m-1}/V_m$ injects into the additive group of $S/Q$, an elementary abelian
+  $p$-group.
+\end{proof}
+
+\begin{lemma}[$V_1$ is the Sylow $p$-subgroup of inertia]
+  \label{lem:V1-sylow}
+  \lean{KroneckerWeber.ramificationGroup_one_isSylow}
+  \uses{lem:tame-quotient, lem:wild-quotient}
+  $V_1(Q \mid P)$ is the Sylow $p$-subgroup of $E$. In particular $V_1 \neq
+  \{1\}$ if and only if $p \mid e(Q \mid P)$, and if $p \nmid e(Q \mid P)$ then
+  $V_1 = \{1\}$.
+\end{lemma}
+\begin{proof}
+  \uses{lem:tame-quotient, lem:wild-quotient}
+  By Lemma~\ref{lem:tame-quotient} the quotient $E/V_1$ has order prime to $p$,
+  while by Lemma~\ref{lem:wild-quotient} each successive quotient $V_{m-1}/V_m$
+  is a $p$-group, so $V_1$ is a $p$-group. A normal $p$-subgroup whose quotient
+  has order prime to $p$ is the Sylow $p$-subgroup.
+\end{proof}
+
+\begin{lemma}[Abelian refinement to the base residue units]
+  \label{lem:inertia-abelian-residue}
+  \lean{KroneckerWeber.inertia_quotient_le_base_residue}
+  \uses{lem:tame-quotient}
+  If $D/V_1$ is abelian, then the embedding of Lemma~\ref{lem:tame-quotient}
+  carries $E/V_1$ into the subgroup $(R/P)^\times$ of $(S/Q)^\times$. Hence in
+  that case $E/V_1$ is cyclic of order dividing $\lVert P \rVert - 1$, where
+  $\lVert P \rVert = |R/P|$.
+\end{lemma}
+\begin{proof}
+  \uses{lem:tame-quotient}
+  For $\sigma \in E$ the commutator $\phi\sigma\phi^{-1}\sigma^{-1}$ lies in
+  $V_1$, where $\phi$ is a Frobenius lift. With $\sigma(\pi) \equiv
+  \alpha_\sigma \pi \pmod{Q^2}$ this gives $\alpha_\sigma^{\lVert P \rVert}
+  \equiv \alpha_\sigma \pmod{Q}$, so $\alpha_\sigma \bmod Q$ is fixed by the
+  Frobenius of $S/Q$ over $R/P$ and therefore lies in $(R/P)^\times$.
+\end{proof}
+
+\begin{theorem}[Hilbert's different formula]
+  \label{thm:hilbert-formula}
+  \lean{KroneckerWeber.hilbert_different_formula}
+  \uses{def:ramification-groups, lem:ramif-uniformizer, lem:wild-quotient,
+    lem:V1-sylow}
+  Let $Q^k$ be the exact power of $Q$ dividing the relative different
+  $\operatorname{diff}(S \mid R)$. Then
+  \[
+    k = \sum_{m \ge 0} \bigl(|V_m(Q \mid P)| - 1\bigr).
+  \]
+  In particular $Q^{e} \mid \operatorname{diff}(S \mid R)$ if and only if
+  $p \mid e(Q \mid P)$.
+\end{theorem}
+\begin{proof}
+  \uses{def:ramification-groups, lem:ramif-uniformizer, lem:wild-quotient,
+    lem:V1-sylow}
+  Assume first $Q$ totally ramified over $P$, so $G = D = E$. For $\pi \in Q
+  \setminus Q^2$ with minimal polynomial $f$ over $K$, the exact power of $Q$
+  dividing $f'(\pi)S$ equals $Q^k$. By Lemma~\ref{lem:ramif-uniformizer}, for
+  $\sigma \in V_{m-1} \setminus V_m$ the ideal $(\pi - \sigma(\pi))S$ is exactly
+  divisible by $Q^m$; summing over $\sigma \neq 1$ gives $k = \sum_{m \ge 1} m
+  \,|V_{m-1} \setminus V_m| = \sum_{m \ge 0}(|V_m| - 1)$. For the general normal
+  case, transitivity of the different,
+  $\operatorname{diff}(S \mid R) = \operatorname{diff}(S \mid S_E)\,
+  \operatorname{diff}(S_E \mid R)S$, reduces to the totally ramified piece. The
+  final equivalence holds because $Q^e \mid \operatorname{diff}$ exactly when
+  $V_1 \neq \{1\}$, i.e. when $p \mid e$ by Lemma~\ref{lem:V1-sylow}.
+\end{proof}
+
 \section{Reductions}
 
 \begin{lemma}[Compositum of abelian extensions]
@@ -80,6 +223,7 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
 \begin{lemma}[Tame inertia at $q \neq p$]
   \label{lem:tame-inertia}
   \lean{KroneckerWeber.tame_inertia_cyclic}
+  \uses{lem:V1-sylow, lem:inertia-abelian-residue}
   Let $K/\Q$ be abelian of degree $p^m$ and let $q \neq p$ be a prime ramified
   in $K$. For a prime $Q$ of $K$ over $q$ with inertia group $E(Q \mid q)$ and
   ramification index $e = e(Q \mid q)$, the inertia is tame: the first
@@ -87,17 +231,16 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
   is cyclic, $e$ is a power of $p$, and $e \mid q - 1$.
 \end{lemma}
 \begin{proof}
+  \uses{lem:V1-sylow, lem:inertia-abelian-residue}
   The inertia group $E(Q \mid q)$ is a subgroup of $\Gal(K/\Q)$, so its order
-  $e$ is a power of $p$. The residue characteristic at $q$ is $q$, and the wild
-  inertia $V_1(Q \mid q)$ is the $q$-Sylow subgroup of $E(Q \mid q)$; since
-  $|E(Q \mid q)| = e$ is a power of $p \neq q$, the wild inertia is trivial,
-  $V_1(Q \mid q) = \{1\}$, so the ramification is tame. A tame inertia group is
-  cyclic, and the tame character embeds $E(Q \mid q)$ into the multiplicative
-  group of the residue field at $Q$, giving a priori $e \mid q^f - 1$, where $f$
-  is the residue degree. Sharpening this to $e \mid q - 1$ uses that $K/\Q$ is
-  abelian: the decomposition group is then abelian, so Frobenius commutes with
-  inertia and acts trivially on the tame quotient, which forces the tame
-  character to land in $\F_q^\times$. Hence $e \mid q - 1$.
+  $e$ is a power of $p$. The rational prime below $Q$ is $q$, and by
+  Lemma~\ref{lem:V1-sylow} the group $V_1(Q \mid q)$ is the Sylow $q$-subgroup
+  of $E(Q \mid q)$; since $|E(Q \mid q)| = e$ is a power of $p \neq q$, we get
+  $V_1(Q \mid q) = \{1\}$, so the ramification is tame and $E(Q \mid q) =
+  E/V_1$. Because $K/\Q$ is abelian the decomposition group, hence $D/V_1$, is
+  abelian, so by Lemma~\ref{lem:inertia-abelian-residue} the inertia $E(Q \mid
+  q)$ embeds into $(\Z/q\Z)^\times$ and is cyclic of order dividing $q - 1$.
+  Thus $e \mid q - 1$.
 \end{proof}
 
 \begin{lemma}[Unique totally ramified cyclotomic subfield]
@@ -239,35 +382,38 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
 \begin{lemma}[Different exponent for $m = 1$, odd $p$]
   \label{lem:odd-different-base}
   \lean{KroneckerWeber.odd_different_base}
-  \uses{lem:p-totally-ramified}
+  \uses{lem:p-totally-ramified, thm:hilbert-formula}
   Let $p$ be odd and let $K/\Q$ be cyclic of degree $p$ in which $p$ is the only
   ramified prime, with prime $P$ over $p$. Then $p$ is totally ramified and the
   different is $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$.
 \end{lemma}
 \begin{proof}
-  \uses{lem:p-totally-ramified}
+  \uses{lem:p-totally-ramified, thm:hilbert-formula}
   By Lemma~\ref{lem:p-totally-ramified} the prime $p$ is totally ramified, so
-  $e(P \mid p) = p$. Being cyclic and totally ramified of degree $p$, the
-  extension $K/\Q$ has a single jump $b \ge 1$ in its lower-numbering
-  ramification filtration, with $V_0 = \dots = V_b$ of order $p$ and
-  $V_{b+1} = \{1\}$, so by Hilbert's formula
-  $v_P(\operatorname{diff}) = (b + 1)(p - 1)$. The conductor exponent of $K/\Q$
-  at $p$ equals $b + 1$; since $\Gal(K/\Q)$ has order $p$ and
-  $(\Z/p\Z)^\times$ has order $p - 1$ with no element of order $p$, a character
-  of order $p$ ramified only at $p$ has conductor exactly $p^2$, whence
-  $b + 1 = 2$, i.e. $b = 1$. Therefore $v_P(\operatorname{diff}) = 2(p - 1)$,
-  that is $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$.
+  $e(P \mid p) = p$. Fix a uniformizer $\pi \in P \setminus P^2$; it generates
+  $K$ with monic minimal polynomial $f(x) = x^p + a_1 x^{p-1} + \dots + a_p$
+  whose coefficients $a_i \in \Z$ are all divisible by $p$ (since $1, \pi,
+  \dots, \pi^{p-1}$ are independent mod $p$). Let $P^k$ be the exact power of
+  $P$ dividing $f'(\pi)$. By Hilbert's formula
+  (Theorem~\ref{thm:hilbert-formula}) $k = \sum_{m \ge 0}(|V_m| - 1)$; since
+  each $V_m$ is trivial or all of $E$ (which has prime order $p$), $k$ is a
+  multiple of $p - 1$. Expanding $f'(\pi) = p\pi^{p-1} + (p-1)a_1 \pi^{p-2} +
+  \dots + a_{p-1}$, the $P$-adic valuations of the terms are pairwise
+  incongruent modulo $p$, hence distinct, so $k$ equals their minimum. The only
+  multiple of $p - 1$ realizable as that minimum is $2(p-1)$, attained by the
+  $a_1$-term. Hence $k = 2(p-1)$ and
+  $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$.
 \end{proof}
 
 \begin{lemma}[Cyclicity of the Galois group, odd $p$]
   \label{lem:odd-galois-cyclic}
   \lean{KroneckerWeber.odd_galois_cyclic}
-  \uses{lem:odd-different-base, lem:p-totally-ramified}
+  \uses{lem:odd-different-base, lem:p-totally-ramified, thm:hilbert-formula}
   Let $p$ be odd and $K/\Q$ abelian of degree $p^2$ in which $p$ is the only
   ramified prime. Then $G = \Gal(K/\Q)$ is cyclic.
 \end{lemma}
 \begin{proof}
-  \uses{lem:odd-different-base, lem:p-totally-ramified}
+  \uses{lem:odd-different-base, lem:p-totally-ramified, thm:hilbert-formula}
   By Lemma~\ref{lem:p-totally-ramified} the prime $p$ is totally ramified, so
   the inertia group $E(P \mid p)$ and the
   first ramification group $V_1$ both have order $p^2$. Let $V_r$ be the first
