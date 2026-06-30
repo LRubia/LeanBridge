@@ -162,14 +162,33 @@ theorem inertia_field_strip_prime (K : Type*) [Field K] [NumberField K] [IsAbeli
 /-- **Reduction to a single ramified prime.** If Kronecker–Weber holds for every abelian extension
 of `p`-power degree ramified only at `p`, then it holds for every abelian extension of `p`-power
 degree. -/
-theorem reduction_single_prime {p : ℕ} (hp : p.Prime)
-    (H : ∀ (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K],
+theorem reduction_single_prime.{u} {p : ℕ} (hp : p.Prime)
+    (H : ∀ (K : Type u) [Field K] [NumberField K] [IsAbelianGalois ℚ K],
           (∃ m : ℕ, Module.finrank ℚ K = p ^ m) → ramifiedPrimes K ⊆ {p} →
             IsContainedInCyclotomic K)
-    (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
+    (K : Type u) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
     {m : ℕ} (hdeg : Module.finrank ℚ K = p ^ m) :
     IsContainedInCyclotomic K := by
-  sorry
+  -- Strong induction on (ramifiedPrimes K).ncard
+  let P (n : ℕ) : Prop := ∀ (K' : Type u) [Field K'] [NumberField K'] [IsAbelianGalois ℚ K'],
+    (∃ m' : ℕ, Module.finrank ℚ K' = p ^ m') → (ramifiedPrimes K').ncard = n → IsContainedInCyclotomic K'
+  have hP : ∀ n, (∀ k < n, P k) → P n := by
+    intro n ih K' _ _ _ hdeg' hncard
+    rcases hdeg' with ⟨m', hdeg'_val⟩
+    by_cases hsubset : ramifiedPrimes K' ⊆ {p}
+    · exact H K' (⟨m', hdeg'_val⟩) hsubset
+    · rcases Set.not_subset.mp hsubset with ⟨q, hq_mem, hq_not⟩
+      simp at hq_not
+      have hq_prime : q.Prime := hq_mem.1
+      rcases inertia_field_strip_prime K' hp hdeg'_val hq_prime hq_not hq_mem with ⟨K'', _, _, _, hdeg'', hlt, himpl⟩
+      have hlt' : (ramifiedPrimes K'').ncard < n := by
+        rw [hncard] at hlt
+        exact hlt
+      have h_ih := ih (ramifiedPrimes K'').ncard hlt' K'' hdeg'' rfl
+      exact himpl h_ih
+  have h_all : P ((ramifiedPrimes K).ncard) :=
+    Nat.strong_induction_on (ramifiedPrimes K).ncard hP
+  exact h_all K (⟨m, hdeg⟩) rfl
 
 /-- **Total ramification of the residual prime.** A nontrivial abelian extension `K/ℚ` of `p`-power
 degree ramified only at `p` is totally ramified at `p`. -/
@@ -273,7 +292,7 @@ theorem abelian_subset_cyclotomic.{u} (K : Type u) [Field K] [NumberField K]
   apply reduction_prime_power.{u, u}
   intro K' _ _ _ hdeg
   obtain ⟨p, m, hp, hdeg'⟩ := hdeg
-  refine reduction_single_prime.{u, u} hp ?_ K' hdeg'
+  refine reduction_single_prime.{u} hp ?_ K' hdeg'
   intro K'' _ _ _ hpm hram
   obtain ⟨m', hdeg''⟩ := hpm
   by_cases h2 : p = 2
