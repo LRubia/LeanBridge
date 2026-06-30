@@ -45,8 +45,8 @@ estimates in the later sections rely on.
 
 \begin{definition}[Higher ramification groups]
   \label{def:ramification-groups}
-  \lean{KroneckerWeber.ramificationGroup}
-  \leanfile{LeanBridge/KroneckerWeber.lean}
+  \lean{Ramification.ramificationGroup}
+  \leanfile{LeanBridge/Ramification.lean}
   For $m \ge 0$ the $m$th \emph{ramification group} (lower numbering) is
   \[
     V_m(Q \mid P) = \{\sigma \in E : \sigma(x) \equiv x \pmod{Q^{m+1}}
@@ -58,8 +58,8 @@ estimates in the later sections rely on.
 
 \begin{lemma}[Uniformizer criterion]
   \label{lem:ramif-uniformizer}
-  \lean{KroneckerWeber.mem_ramificationGroup_iff}
-  \leanfile{LeanBridge/KroneckerWeber.lean}
+  \lean{Ramification.mem_ramificationGroup_iff}
+  \leanfile{LeanBridge/Ramification.lean}
   \uses{def:ramification-groups}
   Fix $\pi \in Q \setminus Q^2$. For $\sigma \in E$ and $m \ge 0$,
   \[
@@ -77,8 +77,8 @@ estimates in the later sections rely on.
 
 \begin{lemma}[Tame quotient embeds in the residue units]
   \label{lem:tame-quotient}
-  \lean{KroneckerWeber.inertia_quotient_ramificationGroup_one}
-  \leanfile{LeanBridge/KroneckerWeber.lean}
+  \lean{Ramification.inertia_quotient_ramificationGroup_one}
+  \leanfile{LeanBridge/Ramification.lean}
   \uses{lem:ramif-uniformizer}
   Fix $\pi \in Q \setminus Q^2$. For $\sigma \in E$ choose $\alpha_\sigma \in S$
   with $\sigma(\pi) \equiv \alpha_\sigma \pi \pmod{Q^2}$; then $\alpha_\sigma$ is
@@ -98,8 +98,8 @@ estimates in the later sections rely on.
 
 \begin{lemma}[Wild quotients embed in the residue field]
   \label{lem:wild-quotient}
-  \lean{KroneckerWeber.ramificationGroup_quotient_succ}
-  \leanfile{LeanBridge/KroneckerWeber.lean}
+  \lean{Ramification.ramificationGroup_quotient_succ}
+  \leanfile{LeanBridge/Ramification.lean}
   \uses{lem:ramif-uniformizer}
   Fix $\pi \in Q \setminus Q^2$ and $m \ge 2$. For $\sigma \in V_{m-1}$ choose
   $\alpha_\sigma \in S$ with $\sigma(\pi) \equiv \pi + \alpha_\sigma \pi^m
@@ -119,8 +119,8 @@ estimates in the later sections rely on.
 
 \begin{lemma}[$V_1$ is the Sylow $p$-subgroup of inertia]
   \label{lem:V1-sylow}
-  \lean{KroneckerWeber.ramificationGroup_one_isSylow}
-  \leanfile{LeanBridge/KroneckerWeber.lean}
+  \lean{Ramification.ramificationGroup_one_isSylow}
+  \leanfile{LeanBridge/Ramification.lean}
   \uses{lem:tame-quotient, lem:wild-quotient}
   $V_1(Q \mid P)$ is the Sylow $p$-subgroup of $E$. In particular $V_1 \neq
   \{1\}$ if and only if $p \mid e(Q \mid P)$, and if $p \nmid e(Q \mid P)$ then
@@ -136,8 +136,8 @@ estimates in the later sections rely on.
 
 \begin{lemma}[Abelian refinement to the base residue units]
   \label{lem:inertia-abelian-residue}
-  \lean{KroneckerWeber.inertia_quotient_le_base_residue}
-  \leanfile{LeanBridge/KroneckerWeber.lean}
+  \lean{Ramification.inertia_quotient_le_base_residue}
+  \leanfile{LeanBridge/Ramification.lean}
   \uses{lem:tame-quotient}
   If $D/V_1$ is abelian, then the embedding of Lemma~\ref{lem:tame-quotient}
   carries $E/V_1$ into the subgroup $(R/P)^\times$ of $(S/Q)^\times$. Hence in
@@ -155,8 +155,8 @@ estimates in the later sections rely on.
 
 \begin{theorem}[Hilbert's different formula]
   \label{thm:hilbert-formula}
-  \lean{KroneckerWeber.hilbert_different_formula}
-  \leanfile{LeanBridge/KroneckerWeber.lean}
+  \lean{Ramification.hilbert_different_formula}
+  \leanfile{LeanBridge/Ramification.lean}
   \uses{def:ramification-groups, lem:ramif-uniformizer, lem:wild-quotient, lem:V1-sylow}
   Let $Q^k$ be the exact power of $Q$ dividing the relative different
   $\operatorname{diff}(S \mid R)$. Then
