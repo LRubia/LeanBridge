@@ -1,0 +1,16 @@
+\subsection{\href{https://beta.lmfdb.org/knowledge/show/modcurve.model}{Modular curve models}}
+\begin{definition}\label{modcurve.model}
+\uses{ag.canonical_model,ag.hyperelliptic_curve,modcurve.embedded_model,modcurve.plane_model}
+\leanok
+There are several types of models of modular curves, including
+
+\begin{itemize}
+\item  \hyperref[modcurve.plane_model]{Plane models} (which may be smooth or singular)
+\item  \hyperref[ag.canonical_model]{Canonical models} (for non-hyperelliptic curves)
+\item  \hyperref[modcurve.embedded_model]{Embedded models} (for hyperelliptic curves)
+\item  \hyperref[ag.hyperelliptic_curve]{Weierstrass models} (for hyperelliptic curves)
+\end{itemize}
+
+\end{definition}
+
+

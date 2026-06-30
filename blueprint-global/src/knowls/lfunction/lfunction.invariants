@@ -1,0 +1,19 @@
+\subsection{\href{https://beta.lmfdb.org/knowledge/show/lfunction.invariants}{Invariants of an L-function}}
+\begin{definition}\label{lfunction.invariants}
+\uses{lfunction.analytic_rank,lfunction.conductor,lfunction,lfunction.degree,lfunction.motivic_weight,lfunction.primitive,lfunction.root_number,lfunction.selbergdata,lfunction.self-dual}
+\leanok
+The invariants of an \hyperref[lfunction]{L-function} may include:
+
+\begin{itemize}
+\item  its \hyperref[lfunction.degree]{degree} $d$;
+\item  its \hyperref[lfunction.conductor]{conductor} $N$;
+\item  its \hyperref[lfunction.root_number]{sign} (or \hyperref[lfunction.root_number]{root number}) $\varepsilon$;
+\item  its \hyperref[lfunction.motivic_weight]{weight};
+\item  whether it is \hyperref[lfunction.primitive]{primitive} or not;
+\item  whether it is \hyperref[lfunction.self-dual]{self dual} or not;
+\item  its \hyperref[lfunction.analytic_rank]{analytic rank};
+\item  its \hyperref[lfunction.selbergdata]{Selberg data}.
+\end{itemize}
+\end{definition}
+
+

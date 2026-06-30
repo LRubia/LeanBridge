@@ -1,0 +1,21 @@
+\subsection{\href{https://beta.lmfdb.org/knowledge/show/cmf.oldspace}{Old subspace of modular forms}}
+\begin{definition}\label{cmf.oldspace}
+\uses{character.dirichlet.conductor,character.dirichlet.induce,character.dirichlet.primitive,cmf,cmf.character,cmf.cusp_form,cmf.level,cmf.newspace,cmf.weight}
+Each space of $S_k(N,\chi)$ of \hyperref[cmf.cusp_form]{cuspidal} \hyperref[cmf]{modular forms} of \hyperref[cmf.weight]{weight} $k$, \hyperref[cmf.level]{level} $N$, and \hyperref[cmf.character]{character} $\chi$ contains an \textbf{old} subspace $S_k^{\rm old}(N,\chi)$ that can be expressed as a direct sum of \hyperref[cmf.newspace]{spaces of newforms} $S_k^{\rm new}(N_i,\chi_i)$, where each $N_i$ is a proper divisor of $N$ divisible by the \hyperref[character.dirichlet.conductor]{conductor} of $\chi$, and each $\chi_i$ is the unique character of modulus $N_i$ \hyperref[character.dirichlet.induce]{induced} by the \hyperref[character.dirichlet.primitive]{primitive character} that induces $\chi$.
+
+This decomposition arises from the injective maps
+\[
+\begin{aligned}
+\iota_d\colon S_k(N_i,\chi_i)&\to S_k(N,\chi)\\
+f\ &\mapsto f(d\tau)
+\end{aligned}
+\]
+that exist for each divisor $d$ of $N/N_i$.  The image of each $\iota_d$ is isomorphic to $S_k(N_i,\chi_i)$, and we have the decomposition
+\[
+S_k(N,\chi)\simeq\!\!\!\! \bigoplus_{\mathrm{cond}(\chi)|N_i|N}\!\!\!\! S_k^{\rm new}(N_i,\chi_i)^{\oplus m_i},
+\]
+where $m_i$ is the number of divisors of $N/N_i$.  Restricting the direct sum to proper divisors $N_i$ of $N$ yields a decomposition for $S_k^{\rm old}(N,\chi)$.
+
+\end{definition}
+
+
