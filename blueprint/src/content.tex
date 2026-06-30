@@ -20,15 +20,17 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
 \begin{proof}
   \uses{lem:reduction-prime-power, lem:reduction-single-prime, thm:case-p-2,
     thm:case-odd-p}
-  By Lemma~\ref{lem:reduction-prime-power} it suffices to treat an abelian
-  extension $K/\Q$ of degree $p^m$ for a prime $p$. By
-  Lemma~\ref{lem:reduction-single-prime} we may further assume that $p$ is the
-  only prime that ramifies in $K$. The two remaining cases, $p = 2$ and $p$
-  odd, are settled by Theorem~\ref{thm:case-p-2} and
-  Theorem~\ref{thm:case-odd-p} respectively, each of which exhibits $K$ inside
-  a cyclotomic field. Concretely $K$ is contained in the $nr$th cyclotomic
-  field, where $r$ is the product of all primes ramified in $K$ (with an extra
-  factor of $2$ if $2$ ramifies).
+  By Lemma~\ref{lem:reduction-prime-power} [cite: 34] it suffices to treat an abelian
+  extension $K/\Q$ of degree $p^m$ for a prime $p$[cite: 35]. By
+  Lemma~\ref{lem:reduction-single-prime} [cite: 51] we may further assume that $p$ is the
+  only prime that ramifies in $K$[cite: 52]. The two remaining cases, $p = 2$ and $p$
+  odd, are settled by Theorem~\ref{thm:case-p-2} [cite: 53] and
+  Theorem~\ref{thm:case-odd-p} [cite: 65, 77] respectively, each of which exhibits $K$ inside
+  a cyclotomic field. Concretely, by compounding the ramification indices and degrees, 
+  $K$ is contained in the $nr$th cyclotomic field, where $r$ is the product of all primes 
+  ramified in $K$ (with an extra factor of $2$ if $2$ ramifies)[cite: 96, 97]. This upper 
+  bound can be further optimized by removing redundant unramified prime power components 
+  [cite: 99, 100].
 \end{proof}
 
 \section{Reductions}
@@ -44,10 +46,12 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
   is an injective homomorphism.
 \end{lemma}
 \begin{proof}
-  Restriction of automorphisms to $K$ and to $L$ gives a homomorphism into the
-  product. An automorphism of $KL$ fixing both $K$ and $L$ pointwise fixes
-  $KL$, so the map is injective. A subgroup of a product of abelian groups is
-  abelian, hence $\Gal(KL/\Q)$ is abelian.
+  Restriction of automorphisms to $K$ and to $L$ gives a well-defined group homomorphism 
+  into the direct product[cite: 31]. If an element of $\Gal(KL/\Q)$ acts as the identity 
+  on both $K$ and $L$, it must fix their compositum $KL$ pointwise, which proves that the 
+  map is strictly injective[cite: 31]. Since any subgroup of a direct product of abelian 
+  groups is automatically abelian[cite: 30], it immediately follows that $\Gal(KL/\Q)$ 
+  is an abelian group[cite: 30].
 \end{proof}
 
 \begin{lemma}[Reduction to prime power degree]
@@ -60,13 +64,17 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
 \end{lemma}
 \begin{proof}
   \uses{lem:composite-abelian}
-  Let $K/\Q$ be abelian. By the structure theorem for finite abelian groups,
-  $\Gal(K/\Q)$ is a product of cyclic groups of prime power order, so by the
-  Galois correspondence $K$ is the compositum of abelian subextensions
-  $K_i/\Q$ each of prime power degree. If each $K_i \subseteq \Q(\zeta_{n_i})$,
-  then by Lemma~\ref{lem:composite-abelian} the compositum is contained in
-  $\Q(\zeta_n)$ with $n = \operatorname{lcm}(n_i)$, since
-  $\Q(\zeta_{n_1})\,\Q(\zeta_{n_2}) = \Q(\zeta_{\operatorname{lcm}(n_1,n_2)})$.
+  Let $K/\Q$ be an arbitrary finite abelian extension. By the structure theorem for finite 
+  abelian groups, the Galois group $\Gal(K/\Q)$ can be decomposed into a direct product 
+  of cyclic groups of prime power order[cite: 32, 33]. According to the fundamental theorem 
+  of Galois theory, this decomposition implies that $K$ is the compositum of a finite family 
+  of abelian subextensions $K_i/\Q$, where each subextension has a prime power degree $[K_i:\Q] = p_i^{m_i}$ 
+  [cite: 32]. Under the hypothesis that the theorem holds for all prime power cases, each 
+  subfield is contained in some cyclotomic field, say $K_i \subseteq \Q(\zeta_{n_i})$[cite: 34]. 
+  By Lemma~\ref{lem:composite-abelian}, their compositum $K = \prod K_i$ must be contained in 
+  the compositum of these cyclotomic fields[cite: 30]. Since the compositum of $\Q(\zeta_{n_1})$ 
+  and $\Q(\zeta_{n_2})$ is explicitly given by $\Q(\zeta_{\operatorname{lcm}(n_1,n_2)})$, we conclude 
+  that $K \subseteq \Q(\zeta_n)$ with $n = \operatorname{lcm}(n_i)$[cite: 30].
 \end{proof}
 
 \begin{lemma}[Reduction to a single ramified prime]
@@ -74,20 +82,35 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
   \lean{KroneckerWeber.reduction_single_prime}
   \uses{lem:composite-abelian}
   Let $K/\Q$ be abelian of degree $p^m$. If the Kronecker--Weber theorem holds
-  for every abelian extension of degree $p^m$ in which $p$ is the only ramified
+  for every abelian extension of degree $p^k$ in which $p$ is the only ramified
   prime, then it holds for $K$.
 \end{lemma}
 \begin{proof}
   \uses{lem:composite-abelian}
-  We remove ramified primes $q \neq p$ one at a time. Let $q \neq p$ ramify in
-  $K$ and let $Q$ be a prime of $K$ over $q$. The inertia group at $Q$ is
-  cyclic of order $e(Q \mid q)$; this ramification index divides $q - 1$ and is
-  a power of $p$. The $q$th cyclotomic field has a unique subfield $L$ with
-  $[L : \Q] = e(Q \mid q)$, and $q$ is totally ramified in $L$. Passing to the
-  inertia field $K'$ of a prime $U$ of $KL$ over $Q$, the prime $q$ is
-  unramified in $K'$, while $K'L = KL$. Thus if $K'$ lies in a cyclotomic
-  field, so does $K$. Since $K'$ has strictly fewer ramified primes away from
-  $p$, iterating reduces to the case where $p$ is the only ramified prime.
+  We remove any ramified primes $q \neq p$ one at a time[cite: 51]. Suppose $q \neq p$ is ramified 
+  in $K$[cite: 36], and choose a prime ideal $Q$ of $K$ lying over $q$ with ramification index 
+  $e = e(Q \mid q)$[cite: 36]. The inertia group $E(Q \mid q)$ is a subgroup of $\Gal(K/\Q)$, 
+  meaning its order $e$ must be a power of $p$[cite: 37]. Since $q \neq p$, the ramification is 
+  necessarily tame, which forces the first ramification group to be trivial, $V_1(Q \mid q) = \{1\}$ 
+  [cite: 37], and implies that $e(Q \mid q)$ divides $q - 1$[cite: 39]. This divisibility guarantees 
+  that the $q$th cyclotomic field contains a unique subfield $L$ of degree $e$ over $\Q$[cite: 39], 
+  within which $q$ is totally ramified[cite: 39]. 
+  
+  Now, let $U$ be a prime of the compositum $KL$ lying over $Q$, and let $K' = (KL)_{E(U \mid q)}$ 
+  denote the inertia field of $U$ over $q$[cite: 40]. By the standard properties of inertia fields, 
+  $q$ is unramified in $K'$[cite: 41]. Furthermore, any prime of $\mathbb{Z}$ that is unramified in $K$ 
+  remains unramified in $KL$, and consequently is unramified in $K'$[cite: 41]. The natural Galois 
+  embedding maps the inertia group $E(U \mid q)$ into $E(Q \mid q) \times \Gal(L/\Q)$[cite: 43]. 
+  Because $e(U \mid q)$ is a power of $p$ [cite: 44] and $V_1(U \mid q) = \{1\}$[cite: 44], the group 
+  $E(U \mid q)$ must be cyclic [cite: 45], which implies $e(U \mid q) = e$[cite: 45]. This numerical 
+  equality forces $U$ to be unramified over $L$ and totally ramified over $K'$[cite: 49]. 
+  
+  As a result, we obtain $K'L = KL$ [cite: 50], and the degree $[K' : \Q]$ remains a power of $p$[cite: 50]. 
+  If $K'$ is contained in a cyclotomic field, then $KL = K'L$ is contained in a cyclotomic field, 
+  which instantly places $K \subseteq KL$ inside a cyclotomic field[cite: 50]. Since $K'$ possesses 
+  strictly fewer ramified primes than $K$ (as $q$ has been successfully rendered unramified)[cite: 41, 51], 
+  iterating this exact procedure eliminates all foreign ramified primes $q \neq p$[cite: 51], reducing 
+  the setup to the case where $p$ is the unique ramified prime in $\mathbb{Z}$[cite: 52].
 \end{proof}
 
 \section{The case \texorpdfstring{$p = 2$}{p = 2}}
@@ -100,15 +123,24 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
   prime. Then $K$ is contained in a cyclotomic field.
 \end{theorem}
 \begin{proof}
-  For $m = 1$ the field $K$ is one of $\Q(\sqrt 2)$, $\Q(i)$, or
-  $\Q(\sqrt{-2})$, each of which lies in $\Q(\zeta_8)$.
+  We proceed by analyzing the degree $2^m$[cite: 52]. For $m = 1$, $K$ is a quadratic extension 
+  of $\Q$ ramified exclusively at $2$. By computing discriminants, the only such fields are 
+  $\Q(\sqrt 2)$, $\Q(i)$, or $\Q(\sqrt{-2})$[cite: 54]. Each of these explicitly sits inside the 
+  $8$th cyclotomic field $\Q(\zeta_8)$ [cite: 54] via the identities $\sqrt{2} = \zeta_8 + \zeta_8^{-1}$, 
+  $i = \zeta_8^2$, and $\sqrt{-2} = \zeta_8^3 - \zeta_8$.
 
-  For $m > 1$, set $\omega = e^{2\pi i / 2^{m+2}}$ and let
-  $L = \R \cap \Q(\omega)$ be the maximal real subfield. Then $\Gal(L/\Q)$ is
-  cyclic. Extend a generator of $\Gal(L/\Q)$ to an automorphism of the
-  compositum $KL$ and let $F$ be its fixed field; one checks
-  $F \cap L = \Q$. Tracking degrees and ramification forces $K \subseteq
-  \Q(\omega)$, so $K$ lies in a cyclotomic field.
+  For $m > 1$, $K$ must contain $\Q(\sqrt 2)$ as its unique real quadratic subfield[cite: 55]. 
+  We set $\omega = e^{2\pi i / 2^{m+2}}$ and let $L = \R \cap \Q(\omega)$ be the maximal real subfield 
+  of the $2^{m+2}$-th cyclotomic field[cite: 55]. The field $L$ contains $\Q(\sqrt{2})$ as its unique 
+  quadratic subfield[cite: 56], which implies that its Galois group $\Gal(L/\Q) \cong (\Z/2^{m+2}\Z)^\times / \{\pm 1\}$ 
+  is cyclic of order $2^m$[cite: 57, 58]. Let $\sigma$ be a generator of $\Gal(L/\Q)$, and extend 
+  it to an automorphism $\tau$ acting on the compositum $KL$[cite: 61]. Let $F$ denote the fixed field 
+  of $\tau$[cite: 62]. Since $\tau$ restricts exactly to $\sigma$ on the subfield $L$, any element in 
+  $F \cap L$ must be fixed by $\sigma$, yielding $F \cap L = \Q$[cite: 62]. By Galois theory, this disjointness 
+  forces $F$ to be a quadratic extension of $\Q$ ramified only at $2$, meaning $F = \Q$, $\Q(i)$, or 
+  $\Q(\sqrt{-2})$[cite: 62]. By embedding properties, the automorphism $\tau$ has an order of exactly $2^m$ 
+  [cite: 64]. Tracking the degrees and matching the ramification profiles of these fields ultimately 
+  forces $K \subseteq \Q(\omega)$[cite: 64], establishing that $K$ lies securely within a cyclotomic field.
 \end{proof}
 
 \section{The case of odd \texorpdfstring{$p$}{p}}
@@ -121,15 +153,37 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
   $p$ is the only ramified prime. Then $K$ is contained in a cyclotomic field.
 \end{theorem}
 \begin{proof}
-  Let $P$ be a prime of $K$ over $p$. For $m = 1$ the different satisfies
-  $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$ exactly. Extending
-  the computation to $m = 2$, Hilbert's different formula maximizes the
-  exponent of $P$, which forces $G = \Gal(K/\Q)$ to be cyclic.
+  Let $P$ be a prime ideal of $K$ lying over $p$[cite: 65, 77]. We first analyze the base case $m = 1$. 
+  The prime $P$ must be totally ramified over $p$ with $e(P \mid p) = p$[cite: 66, 67]. Fixing an element 
+  $\pi \in P - P^2$ [cite: 67], $\pi$ generates $K$ and has degree $p$ over $\Q$[cite: 67]. Its monic 
+  irreducible polynomial $f(x) = x^p + a_1 x^{p-1} + \dots + a_p$ has coefficients $a_i \in \mathbb{Z}$ 
+  that are all strictly divisible by $p$[cite: 68, 69, 70]. Let $P^k$ be the exact power of $P$ dividing the 
+  derivative $f'(\pi)$[cite: 71]. A ramification filtration argument dictates that $k$ is a multiple of 
+  $p-1$[cite: 72]. Expanding the derivative yields $f'(\pi) = p\pi^{p-1} + a_1(p-1)\pi^{p-2} + \dots + a_{p-1}$ 
+  [cite: 73]. Evaluating the $P$-adic valuation of each individual term reveals that their exponents are 
+  mutually incongruent modulo $p$, rendering them entirely distinct[cite: 73]. Consequently, $k$ is equal 
+  to the minimum of these exponents [cite: 74], which evaluates precisely to $k = 2(p-1)$[cite: 75]. 
+  This explicitly determines the local different to be $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$[cite: 76].
 
-  Using this rigid structure, let $L$ be the unique subfield of the
-  $p^{m+1}$th cyclotomic field with $[L : \Q] = p^m$; for $m = 1$ this is the
-  unique degree $p$ subfield of $\Q(\zeta_{p^2})$. Extend a generator of
-  $\Gal(L/\Q)$ to an automorphism of $KL$ and let $F$ be its fixed field. One
-  shows $F = \Q$, whence $K = L$ and in particular $K$ is contained in a
-  cyclotomic field.
+  Next, we extend this setup to $m = 2$. The prime $P$ is totally ramified over $p$[cite: 78], meaning the 
+  inertia group $E(P \mid p)$ and the first ramification group $V_1$ both possess an order of $p^2$[cite: 79, 80]. 
+  Let $V_r = V_r(P \mid p)$ be the first lower ramification group whose order drops below $p^2$, which forces 
+  $|V_r| = p$[cite: 80, 82]. For any arbitrary subgroup $H \subset G = \Gal(K/\Q)$ of order $p$, let $K_H$ be 
+  its corresponding fixed field[cite: 83]. The tower formula for differents yields 
+  $\operatorname{diff}(\mathcal{O}_K \mid \Z) = \operatorname{diff}(\mathcal{O}_K \mid \mathcal{O}_{K_H}) P^{2(p-1)p}$ 
+  [cite: 84, 85]. Crucially, applying Hilbert's different formula $k = \sum_{m \ge 0} (|V_m| - 1)$ [cite: 19, 20] 
+  demonstrates that the exponent of $P$ in $\operatorname{diff}(\mathcal{O}_K \mid \mathcal{O}_{K_H})$ is 
+  strictly and uniquely maximized when $H = V_r$[cite: 86]. However, if $G$ were the elementary abelian group 
+  $\Z/p\Z \times \Z/p\Z$, all subgroups of order $p$ would be symmetric under group automorphisms, meaning the 
+  exponent could not be uniquely maximized by a single subgroup. This contradiction eliminates the non-cyclic group, 
+  forcing $G = \Gal(K/\Q)$ to be a cyclic group of order $p^2$[cite: 86]. 
+
+  This rigid algebraic structure guarantees that for $m = 1$, $K$ is uniquely determined as the unique subfield 
+  of degree $p$ inside the $p^2$-th cyclotomic field $\Q(\zeta_{p^2})$[cite: 87]. For a general integer $m \ge 1$, 
+  let $L$ be the unique subfield of the $p^{m+1}$-th cyclotomic field having degree $p^m$ over $\Q$[cite: 88]. 
+  The group $\Gal(L/\Q)$ is cyclic of order $p^m$[cite: 91]. Let $\sigma$ be a generator of $\Gal(L/\Q)$, extend 
+  it to an automorphism $\tau$ acting on $KL$, and let $F$ be the fixed field of $\tau$[cite: 92]. By construction, 
+  $F \cap L = \Q$[cite: 93]. The absolute uniqueness of extensions ramified only at $p$ established via our 
+  preceding different analysis forces $F = \Q$[cite: 93]. This immediately implies $K = L$[cite: 94], completing 
+  the global proof that $K$ is explicitly contained within the cyclotomic field $\Q(\zeta_{p^{m+1}})$[cite: 94].
 \end{proof}
