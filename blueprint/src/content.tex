@@ -88,11 +88,16 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
 \end{lemma}
 \begin{proof}
   The inertia group $E(Q \mid q)$ is a subgroup of $\Gal(K/\Q)$, so its order
-  $e$ is a power of $p$. Because $q \neq p$ equals the residue characteristic
-  nowhere relevant here, the ramification is tame, which forces the first
-  ramification group $V_1(Q \mid q)$ to be trivial. A tame inertia group is
-  cyclic and embeds into the multiplicative group of the residue field, so
-  $e \mid q - 1$.
+  $e$ is a power of $p$. The residue characteristic at $q$ is $q$, and the wild
+  inertia $V_1(Q \mid q)$ is the $q$-Sylow subgroup of $E(Q \mid q)$; since
+  $|E(Q \mid q)| = e$ is a power of $p \neq q$, the wild inertia is trivial,
+  $V_1(Q \mid q) = \{1\}$, so the ramification is tame. A tame inertia group is
+  cyclic, and the tame character embeds $E(Q \mid q)$ into the multiplicative
+  group of the residue field at $Q$, giving a priori $e \mid q^f - 1$, where $f$
+  is the residue degree. Sharpening this to $e \mid q - 1$ uses that $K/\Q$ is
+  abelian: the decomposition group is then abelian, so Frobenius commutes with
+  inertia and acts trivially on the tame quotient, which forces the tame
+  character to land in $\F_q^\times$. Hence $e \mid q - 1$.
 \end{proof}
 
 \begin{lemma}[Unique totally ramified cyclotomic subfield]
@@ -156,6 +161,20 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
   prime $q \neq p$, reducing to the case where $p$ is the unique ramified prime.
 \end{proof}
 
+\begin{lemma}[Total ramification of the residual prime]
+  \label{lem:p-totally-ramified}
+  \lean{KroneckerWeber.totally_ramified_of_unique_prime}
+  Let $p$ be prime and let $K/\Q$ be a nontrivial extension of $p$-power degree
+  in which $p$ is the only ramified prime. Then $p$ is totally ramified in $K$.
+\end{lemma}
+\begin{proof}
+  Let $P$ be a prime of $K$ over $p$ and let $T$ be the inertia field of $P$.
+  Then $T/\Q$ is unramified at $p$, and since $p$ is the only prime ramified in
+  $K$ it is unramified everywhere. By Minkowski's discriminant bound $\Q$ admits
+  no nontrivial unramified extension, so $T = \Q$. Hence
+  $e(P \mid p) = [K : \Q]$, i.e. $p$ is totally ramified.
+\end{proof}
+
 \section{The case \texorpdfstring{$p = 2$}{p = 2}}
 
 \begin{lemma}[Quadratic fields ramified only at $2$]
@@ -191,12 +210,14 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
 \begin{theorem}[Kronecker--Weber for $p = 2$]
   \label{thm:case-p-2}
   \lean{KroneckerWeber.case_two}
-  \uses{lem:composite-abelian, lem:quadratic-ram-two, lem:real-subfield-two}
+  \uses{lem:composite-abelian, lem:quadratic-ram-two, lem:real-subfield-two,
+    lem:p-totally-ramified}
   Let $K/\Q$ be abelian of degree $2^m$ in which $2$ is the only ramified
   prime. Then $K$ is contained in a cyclotomic field.
 \end{theorem}
 \begin{proof}
-  \uses{lem:composite-abelian, lem:quadratic-ram-two, lem:real-subfield-two}
+  \uses{lem:composite-abelian, lem:quadratic-ram-two, lem:real-subfield-two,
+    lem:p-totally-ramified}
   For $m = 1$ the field $K$ is quadratic and ramified only at $2$, so by
   Lemma~\ref{lem:quadratic-ram-two} it sits inside $\Q(\zeta_8)$.
 
@@ -218,31 +239,37 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
 \begin{lemma}[Different exponent for $m = 1$, odd $p$]
   \label{lem:odd-different-base}
   \lean{KroneckerWeber.odd_different_base}
-  Let $p$ be odd and $K/\Q$ of degree $p$ in which $p$ is totally ramified,
-  with prime $P$ over $p$. Then the different is
-  $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$.
+  \uses{lem:p-totally-ramified}
+  Let $p$ be odd and let $K/\Q$ be cyclic of degree $p$ in which $p$ is the only
+  ramified prime, with prime $P$ over $p$. Then $p$ is totally ramified and the
+  different is $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$.
 \end{lemma}
 \begin{proof}
-  Since $p$ is totally ramified, $e(P \mid p) = p$. Choose a uniformizer
-  $\pi \in P \setminus P^2$; it generates $K$ with degree $p$ over $\Q$, and
-  its monic minimal polynomial $f(x) = x^p + a_1 x^{p-1} + \dots + a_p$ has all
-  $a_i$ divisible by $p$. Writing $P^k \,\|\, f'(\pi)$, a ramification argument
-  shows $p - 1 \mid k$. Expanding $f'(\pi) = p\pi^{p-1} + a_1(p-1)\pi^{p-2} +
-  \dots + a_{p-1}$, the $P$-adic valuations of the terms are pairwise
-  incongruent modulo $p$, hence distinct, so $k$ equals their minimum, which is
-  $2(p-1)$. Therefore $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$.
+  \uses{lem:p-totally-ramified}
+  By Lemma~\ref{lem:p-totally-ramified} the prime $p$ is totally ramified, so
+  $e(P \mid p) = p$. Being cyclic and totally ramified of degree $p$, the
+  extension $K/\Q$ has a single jump $b \ge 1$ in its lower-numbering
+  ramification filtration, with $V_0 = \dots = V_b$ of order $p$ and
+  $V_{b+1} = \{1\}$, so by Hilbert's formula
+  $v_P(\operatorname{diff}) = (b + 1)(p - 1)$. The conductor exponent of $K/\Q$
+  at $p$ equals $b + 1$; since $\Gal(K/\Q)$ has order $p$ and
+  $(\Z/p\Z)^\times$ has order $p - 1$ with no element of order $p$, a character
+  of order $p$ ramified only at $p$ has conductor exactly $p^2$, whence
+  $b + 1 = 2$, i.e. $b = 1$. Therefore $v_P(\operatorname{diff}) = 2(p - 1)$,
+  that is $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$.
 \end{proof}
 
 \begin{lemma}[Cyclicity of the Galois group, odd $p$]
   \label{lem:odd-galois-cyclic}
   \lean{KroneckerWeber.odd_galois_cyclic}
-  \uses{lem:odd-different-base}
+  \uses{lem:odd-different-base, lem:p-totally-ramified}
   Let $p$ be odd and $K/\Q$ abelian of degree $p^2$ in which $p$ is the only
   ramified prime. Then $G = \Gal(K/\Q)$ is cyclic.
 \end{lemma}
 \begin{proof}
-  \uses{lem:odd-different-base}
-  The prime $p$ is totally ramified, so the inertia group $E(P \mid p)$ and the
+  \uses{lem:odd-different-base, lem:p-totally-ramified}
+  By Lemma~\ref{lem:p-totally-ramified} the prime $p$ is totally ramified, so
+  the inertia group $E(P \mid p)$ and the
   first ramification group $V_1$ both have order $p^2$. Let $V_r$ be the first
   lower ramification group whose order drops below $p^2$; then $|V_r| = p$. For
   a subgroup $H \subset G$ of order $p$ with fixed field $K_H$, the tower
@@ -254,6 +281,22 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
   maximized when $H = V_r$. If $G$ were elementary abelian $\Z/p \times \Z/p$,
   all order-$p$ subgroups would be symmetric and no single $H$ could uniquely
   maximize the exponent, a contradiction. Hence $G$ is cyclic of order $p^2$.
+\end{proof}
+
+\begin{lemma}[Cyclicity for general $m$, odd $p$]
+  \label{lem:odd-cyclic-general}
+  \lean{KroneckerWeber.odd_galois_cyclic_general}
+  \uses{lem:odd-galois-cyclic}
+  Let $p$ be odd and $K/\Q$ abelian of degree $p^m$ in which $p$ is the only
+  ramified prime. Then $\Gal(K/\Q)$ is cyclic.
+\end{lemma}
+\begin{proof}
+  \uses{lem:odd-galois-cyclic}
+  A finite abelian group is cyclic iff it has no subgroup isomorphic to
+  $\Z/p \times \Z/p$. If $\Gal(K/\Q)$ had such a subgroup, the corresponding
+  fixed field would be an abelian extension of $\Q$ of degree $p^2$ ramified
+  only at $p$ with non-cyclic Galois group, contradicting
+  Lemma~\ref{lem:odd-galois-cyclic}. Hence $\Gal(K/\Q)$ is cyclic.
 \end{proof}
 
 \begin{lemma}[Unique cyclotomic subfield of $p$-power degree, odd $p$]
@@ -272,16 +315,19 @@ single prime, and finally a case analysis on whether that prime is $2$ or odd.
 \begin{theorem}[Kronecker--Weber for odd $p$]
   \label{thm:case-odd-p}
   \lean{KroneckerWeber.case_odd}
-  \uses{lem:composite-abelian, lem:odd-galois-cyclic, lem:odd-unique-subfield}
+  \uses{lem:composite-abelian, lem:odd-cyclic-general, lem:odd-unique-subfield,
+    lem:p-totally-ramified}
   Let $p$ be an odd prime and let $K/\Q$ be abelian of degree $p^m$ in which
   $p$ is the only ramified prime. Then $K$ is contained in a cyclotomic field.
 \end{theorem}
 \begin{proof}
-  \uses{lem:composite-abelian, lem:odd-galois-cyclic, lem:odd-unique-subfield}
-  The cyclicity established in Lemma~\ref{lem:odd-galois-cyclic} (and its
-  general-$m$ analogue) pins down the structure of $K$. Let $L$ be the unique
-  degree $p^m$ subfield of $\Q(\zeta_{p^{m+1}})$ from
-  Lemma~\ref{lem:odd-unique-subfield}, with $\Gal(L/\Q)$ cyclic of order $p^m$.
+  \uses{lem:composite-abelian, lem:odd-cyclic-general, lem:odd-unique-subfield,
+    lem:p-totally-ramified}
+  By Lemma~\ref{lem:odd-cyclic-general} the group $\Gal(K/\Q)$ is cyclic, and by
+  Lemma~\ref{lem:p-totally-ramified} the prime $p$ is totally ramified; together
+  these pin down the structure of $K$. Let $L$ be the unique degree $p^m$
+  subfield of $\Q(\zeta_{p^{m+1}})$ from Lemma~\ref{lem:odd-unique-subfield},
+  with $\Gal(L/\Q)$ cyclic of order $p^m$.
   Let $\sigma$ generate $\Gal(L/\Q)$, extend it to an automorphism $\tau$ of
   $KL$ (Lemma~\ref{lem:composite-abelian}), and let $F$ be the fixed field of
   $\tau$. Then $F \cap L = \Q$, and the uniqueness of extensions ramified only
