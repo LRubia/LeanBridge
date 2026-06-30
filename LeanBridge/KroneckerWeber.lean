@@ -26,11 +26,10 @@ namespace KroneckerWeber
 def IsContainedInCyclotomic (K : Type*) [Field K] [Algebra ℚ K] : Prop :=
   ∃ n : ℕ, 0 < n ∧ Nonempty (K →ₐ[ℚ] CyclotomicField n ℚ)
 
-/-- The set of rational primes that ramify in a number field `K`: those `q` admitting a prime `P`
-of `𝓞 K` over `(q)` with ramification index `> 1`. -/
+/-- The set of rational primes that ramify in a number field `K`: those `q` for which the
+ramification index over `(q)` (common to all primes above `q`) exceeds `1`. -/
 def ramifiedPrimes (K : Type*) [Field K] [NumberField K] : Set ℕ :=
-  {q | q.Prime ∧ ∃ P : Ideal (𝓞 K), P.IsPrime ∧ P.LiesOver (Ideal.span {(q : ℤ)}) ∧
-        1 < Ideal.ramificationIdx (algebraMap ℤ (𝓞 K)) (Ideal.span {(q : ℤ)}) P}
+  {q | q.Prime ∧ 1 < Ideal.ramificationIdxIn (Ideal.span {(q : ℤ)}) (𝓞 K)}
 
 /-! ## Higher ramification groups and Hilbert's different formula
 
@@ -97,8 +96,8 @@ theorem inertia_quotient_le_base_residue [IsDedekindDomain B] [IsGaloisGroup G A
 /-- **Hilbert's different formula.** If `Q^k` is the exact power of `Q` dividing the different
 `diff(S | R)`, then `k = ∑_{m ≥ 0} (|V_m| - 1)`. -/
 theorem hilbert_different_formula [IsDedekindDomain A] [IsDedekindDomain B] [Module.Finite A B]
-    [IsGaloisGroup G A B] [Finite G] {Q : Ideal B} [Q.IsPrime] {P : Ideal A} [P.IsPrime]
-    [Q.LiesOver P] :
+    [NoZeroSMulDivisors A B] [IsGaloisGroup G A B] [Finite G] {Q : Ideal B} [Q.IsPrime]
+    {P : Ideal A} [P.IsPrime] [Q.LiesOver P] :
     ∃ k : ℕ, Q ^ k ∣ differentIdeal A B ∧ ¬ Q ^ (k + 1) ∣ differentIdeal A B ∧
       k = ∑ᶠ m : ℕ, (Nat.card (ramificationGroup G Q m) - 1) := by
   sorry
