@@ -197,7 +197,89 @@ theorem odd_unique_subfield {p : ℕ} (hp : p.Prime) (hodd : Odd p) {m : ℕ} (h
       Module.finrank ℚ L = p ^ m ∧ IsCyclic (L ≃ₐ[ℚ] L) ∧
         ∀ L' : IntermediateField ℚ (CyclotomicField (p ^ (m + 1)) ℚ),
           Module.finrank ℚ L' = p ^ m → L' = L := by
-  sorry
+  classical
+  haveI : Fact p.Prime := ⟨hp⟩
+  have hp2 : p ≠ 2 := by rintro rfl; exact (by decide : ¬ Odd 2) hodd
+  set n := p ^ (m + 1) with hn
+  haveI : NeZero n := ⟨pow_ne_zero _ hp.ne_zero⟩
+  haveI : NeZero ((n : ℕ) : ℚ) := ⟨Nat.cast_ne_zero.mpr (NeZero.ne n)⟩
+  haveI : IsCyclotomicExtension {n} ℚ (CyclotomicField n ℚ) :=
+    CyclotomicField.isCyclotomicExtension n ℚ
+  haveI : IsGalois ℚ (CyclotomicField n ℚ) :=
+    IsCyclotomicExtension.isGalois {n} ℚ (CyclotomicField n ℚ)
+  haveI : FiniteDimensional ℚ (CyclotomicField n ℚ) := inferInstance
+  -- Galois group of `ℚ(ζ_n)/ℚ`, isomorphic to `(ZMod n)ˣ`, which is cyclic.
+  let e : (CyclotomicField n ℚ ≃ₐ[ℚ] CyclotomicField n ℚ) ≃* (ZMod n)ˣ :=
+    IsCyclotomicExtension.Rat.galEquivZMod n (CyclotomicField n ℚ)
+  let φ : (CyclotomicField n ℚ ≃ₐ[ℚ] CyclotomicField n ℚ) →* (ZMod n)ˣ := e
+  have hφ : Function.Injective φ := e.injective
+  haveI hUcyc : IsCyclic (ZMod n)ˣ := ZMod.isCyclic_units_of_prime_pow p hp hp2 (m + 1)
+  haveI hGcyc : IsCyclic (CyclotomicField n ℚ ≃ₐ[ℚ] CyclotomicField n ℚ) :=
+    isCyclic_of_surjective e.symm e.symm.surjective
+  have hd : (p - 1) ∣ p ^ m * (p - 1) := dvd_mul_left (p - 1) (p ^ m)
+  have hcardU : Nat.card (ZMod n)ˣ = p ^ m * (p - 1) := by
+    rw [Nat.card_eq_fintype_card, ZMod.card_units_eq_totient, hn,
+      Nat.totient_prime_pow hp (Nat.succ_pos m)]
+    simp
+  have hcardG : Nat.card (CyclotomicField n ℚ ≃ₐ[ℚ] CyclotomicField n ℚ) = p ^ m * (p - 1) := by
+    rw [Nat.card_congr e.toEquiv, hcardU]
+  -- The unique subgroup `H_U` of `(ZMod n)ˣ` of cardinality `p - 1`.
+  set HU : Subgroup (ZMod n)ˣ := (powMonoidHom (p - 1)).ker with hHU
+  have hcardHU : Nat.card HU = p - 1 := by
+    rw [hHU, IsCyclic.card_powMonoidHom_ker, hcardU, Nat.gcd_eq_right hd]
+  -- Any subgroup of `(ZMod n)ˣ` of cardinality `p - 1` equals `HU`.
+  have huniqU : ∀ S : Subgroup (ZMod n)ˣ, Nat.card S = p - 1 → S = HU := by
+    intro S hS
+    have hle : S ≤ HU := by
+      intro x hx
+      have hxo : (⟨x, hx⟩ : S) ^ (p - 1) = 1 :=
+        orderOf_dvd_iff_pow_eq_one.mp (hS ▸ orderOf_dvd_natCard _)
+      have hx1 : x ^ (p - 1) = 1 := by
+        have h2 := congrArg (fun y : S => (y : (ZMod n)ˣ)) hxo
+        simpa using h2
+      simpa [hHU, MonoidHom.mem_ker, powMonoidHom] using hx1
+    exact Subgroup.eq_of_le_of_card_ge hle (le_of_eq (hcardHU.trans hS.symm))
+  -- Transport `HU` to a subgroup `H` of `G`.
+  set H : Subgroup (CyclotomicField n ℚ ≃ₐ[ℚ] CyclotomicField n ℚ) := HU.comap φ with hHdef
+  have hcardH : Nat.card H = p - 1 := by
+    rw [hHdef, Subgroup.comap_equiv_eq_map_symm, Nat.card_congr (Subgroup.equivMapOfInjective _ _
+      e.symm.injective).toEquiv.symm, hcardHU]
+  haveI : H.Normal := by
+    refine ⟨fun a ha g => ?_⟩
+    have heq : φ (g * a * g⁻¹) = φ a := by
+      simp only [map_mul, map_inv]
+      rw [mul_comm (φ g) (φ a), mul_assoc, mul_inv_cancel, mul_one]
+    simpa [hHdef, Subgroup.mem_comap, heq] using ha
+  -- The witness subfield.
+  refine ⟨IntermediateField.fixedField H, ?_, ?_, ?_⟩
+  · -- degree
+    rw [IntermediateField.finrank_eq_fixingSubgroup_index, IntermediateField.fixingSubgroup_fixedField]
+    have hmul := Subgroup.index_mul_card H
+    rw [hcardH, hcardG] at hmul
+    have hpm : 0 < p - 1 := by have := hp.two_le; omega
+    exact Nat.eq_of_mul_eq_mul_right hpm hmul
+  · -- cyclic Galois group
+    haveI hquot : IsCyclic ((CyclotomicField n ℚ ≃ₐ[ℚ] CyclotomicField n ℚ) ⧸ H) :=
+      isCyclic_of_surjective (QuotientGroup.mk' H) (QuotientGroup.mk'_surjective H)
+    exact isCyclic_of_surjective (IsGalois.normalAutEquivQuotient H).toMonoidHom
+      (IsGalois.normalAutEquivQuotient H).surjective
+  · -- uniqueness
+    intro L' hL'
+    have hidx : (IntermediateField.fixingSubgroup L').index = p ^ m := by
+      rw [← IntermediateField.finrank_eq_fixingSubgroup_index]; exact hL'
+    have hcardH' : Nat.card (IntermediateField.fixingSubgroup L') = p - 1 := by
+      have hmul := Subgroup.index_mul_card (IntermediateField.fixingSubgroup L')
+      rw [hidx, hcardG] at hmul
+      have hpm : 0 < p ^ m := pow_pos hp.pos m
+      exact Nat.eq_of_mul_eq_mul_left hpm hmul
+    -- map to `(ZMod n)ˣ`
+    set S : Subgroup (ZMod n)ˣ := (IntermediateField.fixingSubgroup L').map φ with hS
+    have hcardS : Nat.card S = p - 1 := by
+      rw [hS, Subgroup.card_map_of_injective hφ, hcardH']
+    have hSHU : S = HU := huniqU S hcardS
+    have hfix : IntermediateField.fixingSubgroup L' = H := by
+      rw [hHdef, ← hSHU, hS, Subgroup.comap_map_eq_self_of_injective hφ]
+    rw [← IsGalois.fixedField_fixingSubgroup L', hfix]
 
 /-- **Kronecker–Weber for odd `p`.** An abelian extension `K/ℚ` of degree `p^m` (odd `p`) ramified
 only at `p` is contained in a cyclotomic field. -/
