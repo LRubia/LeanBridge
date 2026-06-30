@@ -1,0 +1,135 @@
+\chapter{The Kronecker--Weber Theorem}
+
+The Kronecker--Weber theorem asserts that every finite abelian extension of
+$\Q$ is contained in a cyclotomic field. We follow the classical reduction:
+first to extensions of prime power degree, then to extensions ramified at a
+single prime, and finally a case analysis on whether that prime is $2$ or odd.
+
+\section{Statement}
+
+\begin{theorem}[Kronecker--Weber]
+  \label{thm:kronecker-weber}
+  \lean{KroneckerWeber.abelian_subset_cyclotomic}
+  \uses{lem:reduction-prime-power, lem:reduction-single-prime, thm:case-p-2,
+    thm:case-odd-p}
+  Let $K/\Q$ be a finite abelian extension, that is, a finite normal extension
+  whose Galois group $\Gal(K/\Q)$ is abelian. Then there exists a positive
+  integer $n$ such that $K \subseteq \Q(\zeta_n)$, where $\zeta_n$ is a
+  primitive $n$th root of unity.
+\end{theorem}
+\begin{proof}
+  \uses{lem:reduction-prime-power, lem:reduction-single-prime, thm:case-p-2,
+    thm:case-odd-p}
+  By Lemma~\ref{lem:reduction-prime-power} it suffices to treat an abelian
+  extension $K/\Q$ of degree $p^m$ for a prime $p$. By
+  Lemma~\ref{lem:reduction-single-prime} we may further assume that $p$ is the
+  only prime that ramifies in $K$. The two remaining cases, $p = 2$ and $p$
+  odd, are settled by Theorem~\ref{thm:case-p-2} and
+  Theorem~\ref{thm:case-odd-p} respectively, each of which exhibits $K$ inside
+  a cyclotomic field. Concretely $K$ is contained in the $nr$th cyclotomic
+  field, where $r$ is the product of all primes ramified in $K$ (with an extra
+  factor of $2$ if $2$ ramifies).
+\end{proof}
+
+\section{Reductions}
+
+\begin{lemma}[Compositum of abelian extensions]
+  \label{lem:composite-abelian}
+  \lean{KroneckerWeber.compositum_abelian}
+  If $K/\Q$ and $L/\Q$ are finite abelian extensions, then their compositum
+  $KL/\Q$ is again abelian, and the natural map
+  \[
+    \Gal(KL/\Q) \hookrightarrow \Gal(K/\Q) \times \Gal(L/\Q)
+  \]
+  is an injective homomorphism.
+\end{lemma}
+\begin{proof}
+  Restriction of automorphisms to $K$ and to $L$ gives a homomorphism into the
+  product. An automorphism of $KL$ fixing both $K$ and $L$ pointwise fixes
+  $KL$, so the map is injective. A subgroup of a product of abelian groups is
+  abelian, hence $\Gal(KL/\Q)$ is abelian.
+\end{proof}
+
+\begin{lemma}[Reduction to prime power degree]
+  \label{lem:reduction-prime-power}
+  \lean{KroneckerWeber.reduction_prime_power}
+  \uses{lem:composite-abelian}
+  Suppose the Kronecker--Weber theorem holds for every abelian extension of
+  $\Q$ whose degree is a prime power. Then it holds for every finite abelian
+  extension of $\Q$.
+\end{lemma}
+\begin{proof}
+  \uses{lem:composite-abelian}
+  Let $K/\Q$ be abelian. By the structure theorem for finite abelian groups,
+  $\Gal(K/\Q)$ is a product of cyclic groups of prime power order, so by the
+  Galois correspondence $K$ is the compositum of abelian subextensions
+  $K_i/\Q$ each of prime power degree. If each $K_i \subseteq \Q(\zeta_{n_i})$,
+  then by Lemma~\ref{lem:composite-abelian} the compositum is contained in
+  $\Q(\zeta_n)$ with $n = \operatorname{lcm}(n_i)$, since
+  $\Q(\zeta_{n_1})\,\Q(\zeta_{n_2}) = \Q(\zeta_{\operatorname{lcm}(n_1,n_2)})$.
+\end{proof}
+
+\begin{lemma}[Reduction to a single ramified prime]
+  \label{lem:reduction-single-prime}
+  \lean{KroneckerWeber.reduction_single_prime}
+  \uses{lem:composite-abelian}
+  Let $K/\Q$ be abelian of degree $p^m$. If the Kronecker--Weber theorem holds
+  for every abelian extension of degree $p^m$ in which $p$ is the only ramified
+  prime, then it holds for $K$.
+\end{lemma}
+\begin{proof}
+  \uses{lem:composite-abelian}
+  We remove ramified primes $q \neq p$ one at a time. Let $q \neq p$ ramify in
+  $K$ and let $Q$ be a prime of $K$ over $q$. The inertia group at $Q$ is
+  cyclic of order $e(Q \mid q)$; this ramification index divides $q - 1$ and is
+  a power of $p$. The $q$th cyclotomic field has a unique subfield $L$ with
+  $[L : \Q] = e(Q \mid q)$, and $q$ is totally ramified in $L$. Passing to the
+  inertia field $K'$ of a prime $U$ of $KL$ over $Q$, the prime $q$ is
+  unramified in $K'$, while $K'L = KL$. Thus if $K'$ lies in a cyclotomic
+  field, so does $K$. Since $K'$ has strictly fewer ramified primes away from
+  $p$, iterating reduces to the case where $p$ is the only ramified prime.
+\end{proof}
+
+\section{The case \texorpdfstring{$p = 2$}{p = 2}}
+
+\begin{theorem}[Kronecker--Weber for $p = 2$]
+  \label{thm:case-p-2}
+  \lean{KroneckerWeber.case_two}
+  \uses{lem:reduction-single-prime}
+  Let $K/\Q$ be abelian of degree $2^m$ in which $2$ is the only ramified
+  prime. Then $K$ is contained in a cyclotomic field.
+\end{theorem}
+\begin{proof}
+  For $m = 1$ the field $K$ is one of $\Q(\sqrt 2)$, $\Q(i)$, or
+  $\Q(\sqrt{-2})$, each of which lies in $\Q(\zeta_8)$.
+
+  For $m > 1$, set $\omega = e^{2\pi i / 2^{m+2}}$ and let
+  $L = \R \cap \Q(\omega)$ be the maximal real subfield. Then $\Gal(L/\Q)$ is
+  cyclic. Extend a generator of $\Gal(L/\Q)$ to an automorphism of the
+  compositum $KL$ and let $F$ be its fixed field; one checks
+  $F \cap L = \Q$. Tracking degrees and ramification forces $K \subseteq
+  \Q(\omega)$, so $K$ lies in a cyclotomic field.
+\end{proof}
+
+\section{The case of odd \texorpdfstring{$p$}{p}}
+
+\begin{theorem}[Kronecker--Weber for odd $p$]
+  \label{thm:case-odd-p}
+  \lean{KroneckerWeber.case_odd}
+  \uses{lem:reduction-single-prime}
+  Let $p$ be an odd prime and let $K/\Q$ be abelian of degree $p^m$ in which
+  $p$ is the only ramified prime. Then $K$ is contained in a cyclotomic field.
+\end{theorem}
+\begin{proof}
+  Let $P$ be a prime of $K$ over $p$. For $m = 1$ the different satisfies
+  $\operatorname{diff}(\mathcal{O}_K \mid \Z) = P^{2(p-1)}$ exactly. Extending
+  the computation to $m = 2$, Hilbert's different formula maximizes the
+  exponent of $P$, which forces $G = \Gal(K/\Q)$ to be cyclic.
+
+  Using this rigid structure, let $L$ be the unique subfield of the
+  $p^{m+1}$th cyclotomic field with $[L : \Q] = p^m$; for $m = 1$ this is the
+  unique degree $p$ subfield of $\Q(\zeta_{p^2})$. Extend a generator of
+  $\Gal(L/\Q)$ to an automorphism of $KL$ and let $F$ be its fixed field. One
+  shows $F = \Q$, whence $K = L$ and in particular $K$ is contained in a
+  cyclotomic field.
+\end{proof}
