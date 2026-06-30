@@ -1,0 +1,262 @@
+import Mathlib
+
+/-!
+# The Kronecker–Weber Theorem
+
+This file contains sorry'd Lean statements for the blueprint `kw-thm`, formalizing the
+Kronecker–Weber theorem (every finite abelian extension of `ℚ` is contained in a cyclotomic
+field) together with the supporting theory of higher ramification groups, Hilbert's different
+formula, and the classical reduction steps.
+
+The proofs are intentionally omitted (`sorry`); this file fixes faithful statements and the
+canonical Mathlib types used to express them.
+-/
+
+noncomputable section
+
+open NumberField Polynomial
+open scoped NumberField
+
+namespace KroneckerWeber
+
+/-! ## Auxiliary predicates -/
+
+/-- A field `K` over `ℚ` is contained in a cyclotomic field if it embeds (as a `ℚ`-algebra) into
+`CyclotomicField n ℚ` for some positive `n`. This is the Lean rendering of "`K ⊆ ℚ(ζ_n)`". -/
+def IsContainedInCyclotomic (K : Type*) [Field K] [Algebra ℚ K] : Prop :=
+  ∃ n : ℕ, 0 < n ∧ Nonempty (K →ₐ[ℚ] CyclotomicField n ℚ)
+
+/-- The set of rational primes that ramify in a number field `K`: those `q` admitting a prime `P`
+of `𝓞 K` over `(q)` with ramification index `> 1`. -/
+def ramifiedPrimes (K : Type*) [Field K] [NumberField K] : Set ℕ :=
+  {q | q.Prime ∧ ∃ P : Ideal (𝓞 K), P.IsPrime ∧ P.LiesOver (Ideal.span {(q : ℤ)}) ∧
+        1 < Ideal.ramificationIdx (algebraMap ℤ (𝓞 K)) (Ideal.span {(q : ℤ)}) P}
+
+/-! ## Higher ramification groups and Hilbert's different formula
+
+Throughout, `G` is a group acting on the ring `B` (the Galois group of `L/K` acting on `S = 𝒪_L`),
+and `Q` is a prime of `B`. -/
+
+/-- The `m`-th ramification group (lower numbering): the elements of `G` acting trivially on
+`B / Q^{m+1}`. With Mathlib's `Ideal.inertia`, `V_0 = E` is the inertia group and the family is
+descending with trivial intersection. -/
+def ramificationGroup (G : Type*) [Group G] {B : Type*} [CommRing B] [MulSemiringAction G B]
+    (Q : Ideal B) (m : ℕ) : Subgroup G :=
+  Ideal.inertia G (Q ^ (m + 1))
+
+section Ramification
+
+variable {A B : Type*} [CommRing A] [CommRing B] [Algebra A B]
+variable {G : Type*} [Group G] [MulSemiringAction G B]
+
+/-- **Uniformizer criterion.** For a uniformizer `π ∈ Q ∖ Q²` and `σ` in the inertia group,
+membership in `V_m` is detected on `π` alone: `σ ∈ V_m ↔ σ(π) ≡ π (mod Q^{m+1})`. -/
+theorem mem_ramificationGroup_iff [IsDedekindDomain B] [IsGaloisGroup G A B]
+    {Q : Ideal B} [Q.IsPrime] {π : B} (hπ : π ∈ Q) (hπ2 : π ∉ Q ^ 2)
+    {σ : G} (hσ : σ ∈ ramificationGroup G Q 0) (m : ℕ) :
+    σ ∈ ramificationGroup G Q m ↔ σ • π - π ∈ Q ^ (m + 1) := by
+  sorry
+
+/-- **Tame quotient embeds in the residue units.** The map `σ ↦ α_σ mod Q` is a homomorphism from
+the inertia group `E = V_0` to `(S/Q)ˣ` whose kernel is `V_1`. Consequently `E/V_1` is cyclic of
+order dividing `|S/Q| - 1`. -/
+theorem inertia_quotient_ramificationGroup_one [IsDedekindDomain B] [IsGaloisGroup G A B]
+    {Q : Ideal B} [Q.IsPrime] :
+    ∃ f : ramificationGroup G Q 0 →* (B ⧸ Q)ˣ,
+      f.ker = (ramificationGroup G Q 1).subgroupOf (ramificationGroup G Q 0) := by
+  sorry
+
+/-- **Wild quotients embed in the residue field.** For `m ≥ 1` the map `σ ↦ α_σ mod Q` is a
+homomorphism from `V_m` to the additive group of `S/Q` with kernel `V_{m+1}`; hence `V_m/V_{m+1}`
+is elementary abelian of exponent `p`. -/
+theorem ramificationGroup_quotient_succ [IsDedekindDomain B] [IsGaloisGroup G A B]
+    {Q : Ideal B} [Q.IsPrime] {m : ℕ} (hm : 1 ≤ m) :
+    ∃ f : ramificationGroup G Q m →* Multiplicative (B ⧸ Q),
+      f.ker = (ramificationGroup G Q (m + 1)).subgroupOf (ramificationGroup G Q m) := by
+  sorry
+
+/-- **`V_1` is the Sylow `p`-subgroup of inertia**, where `p` is the residue characteristic. In
+particular `V_1 ≠ {1}` iff `p ∣ e`, and `p ∤ e` forces `V_1 = {1}`. -/
+theorem ramificationGroup_one_isSylow [IsDedekindDomain B] [IsGaloisGroup G A B] [Finite G]
+    {Q : Ideal B} [Q.IsPrime] (p : ℕ) [Fact p.Prime] [CharP (B ⧸ Q) p] :
+    ∃ S : Sylow p (ramificationGroup G Q 0),
+      (S : Subgroup (ramificationGroup G Q 0)) =
+        (ramificationGroup G Q 1).subgroupOf (ramificationGroup G Q 0) := by
+  sorry
+
+/-- **Abelian refinement to the base residue units.** If the Galois group is abelian then the
+homomorphism of `inertia_quotient_ramificationGroup_one` factors through `(R/P)ˣ ⊆ (S/Q)ˣ`; i.e.
+there is a homomorphism `E → (R/P)ˣ` with kernel `V_1`. Hence `E/V_1` is cyclic of order dividing
+`‖P‖ - 1`. -/
+theorem inertia_quotient_le_base_residue [IsDedekindDomain B] [IsGaloisGroup G A B]
+    [IsMulCommutative G] {Q : Ideal B} [Q.IsPrime] {P : Ideal A} [P.IsPrime] [Q.LiesOver P] :
+    ∃ f : ramificationGroup G Q 0 →* (A ⧸ P)ˣ,
+      f.ker = (ramificationGroup G Q 1).subgroupOf (ramificationGroup G Q 0) := by
+  sorry
+
+/-- **Hilbert's different formula.** If `Q^k` is the exact power of `Q` dividing the different
+`diff(S | R)`, then `k = ∑_{m ≥ 0} (|V_m| - 1)`. -/
+theorem hilbert_different_formula [IsDedekindDomain A] [IsDedekindDomain B] [Module.Finite A B]
+    [IsGaloisGroup G A B] [Finite G] {Q : Ideal B} [Q.IsPrime] {P : Ideal A} [P.IsPrime]
+    [Q.LiesOver P] :
+    ∃ k : ℕ, Q ^ k ∣ differentIdeal A B ∧ ¬ Q ^ (k + 1) ∣ differentIdeal A B ∧
+      k = ∑ᶠ m : ℕ, (Nat.card (ramificationGroup G Q m) - 1) := by
+  sorry
+
+end Ramification
+
+/-! ## Reductions -/
+
+/-- **Compositum of abelian extensions.** If `K` and `L` are abelian subextensions of `E/F`, then
+their compositum `K ⊔ L` is abelian over `F`, and restriction gives an injective homomorphism
+`Gal(KL/F) ↪ Gal(K/F) × Gal(L/F)`. -/
+theorem compositum_abelian {F E : Type*} [Field F] [Field E] [Algebra F E]
+    (K L : IntermediateField F E) [IsAbelianGalois F K] [IsAbelianGalois F L] :
+    IsAbelianGalois F ↥(K ⊔ L) ∧
+      ∃ f : (↥(K ⊔ L) ≃ₐ[F] ↥(K ⊔ L)) →* (K ≃ₐ[F] K) × (L ≃ₐ[F] L), Function.Injective f := by
+  sorry
+
+/-- **Reduction to prime power degree.** If Kronecker–Weber holds for every abelian extension of
+prime power degree, then it holds for every finite abelian extension. -/
+theorem reduction_prime_power
+    (H : ∀ (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K],
+          (∃ p m : ℕ, p.Prime ∧ Module.finrank ℚ K = p ^ m) → IsContainedInCyclotomic K)
+    (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K] :
+    IsContainedInCyclotomic K := by
+  sorry
+
+/-- **Tame inertia at `q ≠ p`.** For `K/ℚ` abelian of degree `p^m` and a prime `q ≠ p` ramified at
+`Q`, the inertia is tame: `V_1(Q | q) = {1}`, the inertia group is cyclic, its order is a power of
+`p`, and divides `q - 1`. -/
+theorem tame_inertia_cyclic (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
+    {p : ℕ} (hp : p.Prime) {m : ℕ} (hdeg : Module.finrank ℚ K = p ^ m)
+    {q : ℕ} (hq : q.Prime) (hqp : q ≠ p) (Q : Ideal (𝓞 K)) [Q.IsPrime]
+    [Q.LiesOver (Ideal.span {(q : ℤ)})]
+    (hram : 1 < Nat.card (ramificationGroup (K ≃ₐ[ℚ] K) Q 0)) :
+    ramificationGroup (K ≃ₐ[ℚ] K) Q 1 = ⊥ ∧
+      IsCyclic (ramificationGroup (K ≃ₐ[ℚ] K) Q 0) ∧
+      (∃ k : ℕ, Nat.card (ramificationGroup (K ≃ₐ[ℚ] K) Q 0) = p ^ k) ∧
+      Nat.card (ramificationGroup (K ≃ₐ[ℚ] K) Q 0) ∣ q - 1 := by
+  sorry
+
+/-- **Unique totally ramified cyclotomic subfield.** For a prime `q` and `e ∣ q - 1`, the field
+`ℚ(ζ_q)` has a unique subfield `L` of degree `e`, and `q` is totally ramified in `L`. -/
+theorem cyclotomic_unique_subfield {q : ℕ} (hq : q.Prime) {e : ℕ} (he : e ∣ q - 1) :
+    ∃ L : IntermediateField ℚ (CyclotomicField q ℚ),
+      Module.finrank ℚ L = e ∧
+      Ideal.ramificationIdxIn (Ideal.span {(q : ℤ)}) (𝓞 L) = e ∧
+      ∀ L' : IntermediateField ℚ (CyclotomicField q ℚ), Module.finrank ℚ L' = e → L' = L := by
+  sorry
+
+/-- **Stripping one ramified prime via the inertia field.** In the setting of `tame_inertia_cyclic`,
+there is an abelian extension `K'/ℚ` of `p`-power degree with strictly fewer ramified primes than
+`K`, such that `K` is contained in a cyclotomic field whenever `K'` is. -/
+theorem inertia_field_strip_prime (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
+    {p : ℕ} (hp : p.Prime) {m : ℕ} (hdeg : Module.finrank ℚ K = p ^ m)
+    {q : ℕ} (hq : q.Prime) (hqp : q ≠ p) (hqram : q ∈ ramifiedPrimes K) :
+    ∃ (K' : Type) (_ : Field K') (_ : NumberField K') (_ : IsAbelianGalois ℚ K'),
+      (∃ m' : ℕ, Module.finrank ℚ K' = p ^ m') ∧
+      (ramifiedPrimes K').ncard < (ramifiedPrimes K).ncard ∧
+      (IsContainedInCyclotomic K' → IsContainedInCyclotomic K) := by
+  sorry
+
+/-- **Reduction to a single ramified prime.** If Kronecker–Weber holds for every abelian extension
+of `p`-power degree ramified only at `p`, then it holds for every abelian extension of `p`-power
+degree. -/
+theorem reduction_single_prime {p : ℕ} (hp : p.Prime)
+    (H : ∀ (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K],
+          (∃ m : ℕ, Module.finrank ℚ K = p ^ m) → ramifiedPrimes K ⊆ {p} →
+            IsContainedInCyclotomic K)
+    (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
+    {m : ℕ} (hdeg : Module.finrank ℚ K = p ^ m) :
+    IsContainedInCyclotomic K := by
+  sorry
+
+/-- **Total ramification of the residual prime.** A nontrivial abelian extension `K/ℚ` of `p`-power
+degree ramified only at `p` is totally ramified at `p`. -/
+theorem totally_ramified_of_unique_prime {p : ℕ} (hp : p.Prime) (K : Type*) [Field K]
+    [NumberField K] [IsAbelianGalois ℚ K] {m : ℕ} (hm : 1 ≤ m)
+    (hdeg : Module.finrank ℚ K = p ^ m) (hram : ramifiedPrimes K ⊆ {p}) :
+    Ideal.ramificationIdxIn (Ideal.span {(p : ℤ)}) (𝓞 K) = p ^ m := by
+  sorry
+
+/-! ## The case `p = 2` -/
+
+/-- **Quadratic fields ramified only at `2`.** A quadratic field ramified only at `2`
+(`ℚ(√2)`, `ℚ(i)`, or `ℚ(√-2)`) is contained in the `8`th cyclotomic field. -/
+theorem quadratic_ramified_two (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
+    (hdeg : Module.finrank ℚ K = 2) (hram : ramifiedPrimes K ⊆ {2}) :
+    Nonempty (K →ₐ[ℚ] CyclotomicField 8 ℚ) := by
+  sorry
+
+/-- **Maximal real cyclotomic subfield at `2`.** For `m > 1`, the maximal real subfield `L` of
+`ℚ(ζ_{2^{m+2}})` has cyclic Galois group of order `2^m`. -/
+theorem real_subfield_cyclic_two {m : ℕ} (hm : 1 < m) :
+    IsCyclic (↥(NumberField.maximalRealSubfield (CyclotomicField (2 ^ (m + 2)) ℚ)) ≃ₐ[ℚ]
+        ↥(NumberField.maximalRealSubfield (CyclotomicField (2 ^ (m + 2)) ℚ))) ∧
+      Module.finrank ℚ ↥(NumberField.maximalRealSubfield (CyclotomicField (2 ^ (m + 2)) ℚ)) =
+        2 ^ m := by
+  sorry
+
+/-- **Kronecker–Weber for `p = 2`.** An abelian extension `K/ℚ` of degree `2^m` ramified only at
+`2` is contained in a cyclotomic field. -/
+theorem case_two (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
+    {m : ℕ} (hdeg : Module.finrank ℚ K = 2 ^ m) (hram : ramifiedPrimes K ⊆ {2}) :
+    IsContainedInCyclotomic K := by
+  sorry
+
+/-! ## The case of odd `p` -/
+
+/-- **Different exponent for `m = 1`, odd `p`.** For odd `p` and `K/ℚ` cyclic of degree `p`
+ramified only at `p`, with `P` over `p`, the prime `p` is totally ramified and
+`diff(𝒪_K | ℤ) = P^{2(p-1)}`. -/
+theorem odd_different_base {p : ℕ} (hp : p.Prime) (hodd : Odd p) (K : Type*) [Field K]
+    [NumberField K] [IsAbelianGalois ℚ K] (hdeg : Module.finrank ℚ K = p)
+    (hram : ramifiedPrimes K ⊆ {p}) (P : Ideal (𝓞 K)) [P.IsPrime]
+    [P.LiesOver (Ideal.span {(p : ℤ)})] :
+    differentIdeal ℤ (𝓞 K) = P ^ (2 * (p - 1)) := by
+  sorry
+
+/-- **Cyclicity of the Galois group, odd `p`.** For odd `p` and `K/ℚ` abelian of degree `p^2`
+ramified only at `p`, the Galois group is cyclic. -/
+theorem odd_galois_cyclic {p : ℕ} (hp : p.Prime) (hodd : Odd p) (K : Type*) [Field K]
+    [NumberField K] [IsAbelianGalois ℚ K] (hdeg : Module.finrank ℚ K = p ^ 2)
+    (hram : ramifiedPrimes K ⊆ {p}) :
+    IsCyclic (K ≃ₐ[ℚ] K) := by
+  sorry
+
+/-- **Cyclicity for general `m`, odd `p`.** For odd `p` and `K/ℚ` abelian of degree `p^m` ramified
+only at `p`, the Galois group is cyclic. -/
+theorem odd_galois_cyclic_general {p : ℕ} (hp : p.Prime) (hodd : Odd p) (K : Type*) [Field K]
+    [NumberField K] [IsAbelianGalois ℚ K] {m : ℕ} (hdeg : Module.finrank ℚ K = p ^ m)
+    (hram : ramifiedPrimes K ⊆ {p}) :
+    IsCyclic (K ≃ₐ[ℚ] K) := by
+  sorry
+
+/-- **Unique cyclotomic subfield of `p`-power degree, odd `p`.** For odd `p` and `m ≥ 1`, the field
+`ℚ(ζ_{p^{m+1}})` has a unique subfield `L` of degree `p^m`, with cyclic Galois group of order
+`p^m`. -/
+theorem odd_unique_subfield {p : ℕ} (hp : p.Prime) (hodd : Odd p) {m : ℕ} (hm : 1 ≤ m) :
+    ∃ L : IntermediateField ℚ (CyclotomicField (p ^ (m + 1)) ℚ),
+      Module.finrank ℚ L = p ^ m ∧ IsCyclic (L ≃ₐ[ℚ] L) ∧
+        ∀ L' : IntermediateField ℚ (CyclotomicField (p ^ (m + 1)) ℚ),
+          Module.finrank ℚ L' = p ^ m → L' = L := by
+  sorry
+
+/-- **Kronecker–Weber for odd `p`.** An abelian extension `K/ℚ` of degree `p^m` (odd `p`) ramified
+only at `p` is contained in a cyclotomic field. -/
+theorem case_odd {p : ℕ} (hp : p.Prime) (hodd : Odd p) (K : Type*) [Field K] [NumberField K]
+    [IsAbelianGalois ℚ K] {m : ℕ} (hdeg : Module.finrank ℚ K = p ^ m)
+    (hram : ramifiedPrimes K ⊆ {p}) :
+    IsContainedInCyclotomic K := by
+  sorry
+
+/-! ## The Kronecker–Weber theorem -/
+
+/-- **Kronecker–Weber.** Every finite abelian extension `K/ℚ` is contained in a cyclotomic field:
+there is a positive `n` and a `ℚ`-algebra embedding `K → ℚ(ζ_n)`. -/
+theorem abelian_subset_cyclotomic (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K] :
+    IsContainedInCyclotomic K := by
+  sorry
+
+end KroneckerWeber
