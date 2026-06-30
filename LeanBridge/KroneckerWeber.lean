@@ -118,9 +118,9 @@ theorem compositum_abelian {F E : Type*} [Field F] [Field E] [Algebra F E]
 /-- **Reduction to prime power degree.** If Kronecker–Weber holds for every abelian extension of
 prime power degree, then it holds for every finite abelian extension. -/
 theorem reduction_prime_power
-    (H : ∀ (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K],
+    (H : ∀ (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K],
           (∃ p m : ℕ, p.Prime ∧ Module.finrank ℚ K = p ^ m) → IsContainedInCyclotomic K)
-    (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K] :
+    (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K] :
     IsContainedInCyclotomic K := by
   sorry
 
@@ -150,10 +150,10 @@ theorem cyclotomic_unique_subfield {q : ℕ} (hq : q.Prime) {e : ℕ} (he : e �
 /-- **Stripping one ramified prime via the inertia field.** In the setting of `tame_inertia_cyclic`,
 there is an abelian extension `K'/ℚ` of `p`-power degree with strictly fewer ramified primes than
 `K`, such that `K` is contained in a cyclotomic field whenever `K'` is. -/
-theorem inertia_field_strip_prime (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
+theorem inertia_field_strip_prime (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
     {p : ℕ} (hp : p.Prime) {m : ℕ} (hdeg : Module.finrank ℚ K = p ^ m)
     {q : ℕ} (hq : q.Prime) (hqp : q ≠ p) (hqram : q ∈ ramifiedPrimes K) :
-    ∃ (K' : Type) (_ : Field K') (_ : NumberField K') (_ : IsAbelianGalois ℚ K'),
+    ∃ (K' : Type*) (_ : Field K') (_ : NumberField K') (_ : IsAbelianGalois ℚ K'),
       (∃ m' : ℕ, Module.finrank ℚ K' = p ^ m') ∧
       (ramifiedPrimes K').ncard < (ramifiedPrimes K).ncard ∧
       (IsContainedInCyclotomic K' → IsContainedInCyclotomic K) := by
@@ -163,10 +163,10 @@ theorem inertia_field_strip_prime (K : Type) [Field K] [NumberField K] [IsAbelia
 of `p`-power degree ramified only at `p`, then it holds for every abelian extension of `p`-power
 degree. -/
 theorem reduction_single_prime {p : ℕ} (hp : p.Prime)
-    (H : ∀ (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K],
+    (H : ∀ (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K],
           (∃ m : ℕ, Module.finrank ℚ K = p ^ m) → ramifiedPrimes K ⊆ {p} →
             IsContainedInCyclotomic K)
-    (K : Type) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
+    (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K]
     {m : ℕ} (hdeg : Module.finrank ℚ K = p ^ m) :
     IsContainedInCyclotomic K := by
   sorry
@@ -189,12 +189,22 @@ theorem quadratic_ramified_two (K : Type*) [Field K] [NumberField K] [IsAbelianG
   sorry
 
 /-- **Maximal real cyclotomic subfield at `2`.** For `m > 1`, the maximal real subfield `L` of
-`ℚ(ζ_{2^{m+2}})` has cyclic Galois group of order `2^m`. -/
+`ℚ(ζ_{2^{m+2}})` has cyclic Galois group of order `2^m`, and `L` contains `ℚ(√2)` as its unique
+quadratic (degree-`2`) subfield: there is an intermediate field `F` of degree `2` over `ℚ`
+containing a square root of `2` (hence `F = ℚ(√2)`) which is the only degree-`2` subfield of `L`. -/
 theorem real_subfield_cyclic_two {m : ℕ} (hm : 1 < m) :
     IsCyclic (↥(NumberField.maximalRealSubfield (CyclotomicField (2 ^ (m + 2)) ℚ)) ≃ₐ[ℚ]
         ↥(NumberField.maximalRealSubfield (CyclotomicField (2 ^ (m + 2)) ℚ))) ∧
       Module.finrank ℚ ↥(NumberField.maximalRealSubfield (CyclotomicField (2 ^ (m + 2)) ℚ)) =
-        2 ^ m := by
+        2 ^ m ∧
+      ∃ F : IntermediateField ℚ
+          ↥(NumberField.maximalRealSubfield (CyclotomicField (2 ^ (m + 2)) ℚ)),
+        Module.finrank ℚ F = 2 ∧
+        (∃ x : F, (x : ↥(NumberField.maximalRealSubfield (CyclotomicField (2 ^ (m + 2)) ℚ))) ^ 2
+          = 2) ∧
+        ∀ F' : IntermediateField ℚ
+            ↥(NumberField.maximalRealSubfield (CyclotomicField (2 ^ (m + 2)) ℚ)),
+          Module.finrank ℚ F' = 2 → F' = F := by
   sorry
 
 /-- **Kronecker–Weber for `p = 2`.** An abelian extension `K/ℚ` of degree `2^m` ramified only at
