@@ -264,39 +264,21 @@ theorem case_odd {p : ℕ} (hp : p.Prime) (hodd : Odd p) (K : Type*) [Field K] [
 
 /-- **Kronecker–Weber.** Every finite abelian extension `K/ℚ` is contained in a cyclotomic field:
 there is a positive `n` and a `ℚ`-algebra embedding `K → ℚ(ζ_n)`. -/
-theorem abelian_subset_cyclotomic (K : Type*) [Field K] [NumberField K] [IsAbelianGalois ℚ K] :
+theorem abelian_subset_cyclotomic.{u} (K : Type u) [Field K] [NumberField K]
+    [IsAbelianGalois ℚ K] :
     IsContainedInCyclotomic K := by
-  -- Reduce to prime-power degree via reduction_prime_power.
-  have hH : (∀ (K' : Type*) [Field K'] [NumberField K'] [IsAbelianGalois ℚ K'],
-      (∃ p m : ℕ, p.Prime ∧ Module.finrank ℚ K' = p ^ m) → IsContainedInCyclotomic K') := by
-    intro K' _ _ _ hdeg
-    rcases hdeg with ⟨p, m, hp, hdeg'⟩
-    have hprime : ∀ (n : ℕ) (K'' : Type*) [Field K''] [NumberField K''] [IsAbelianGalois ℚ K'']
-        (m' : ℕ), (hdeg'' : Module.finrank ℚ K'' = p ^ m') →
-        (ramifiedPrimes K'').ncard ≤ n → IsContainedInCyclotomic K'' := by
-      intro n
-      induction' n using Nat.strong_induction_on with n ih
-      intro K'' _ _ _ m' hdeg'' hn
-      by_cases hram : ramifiedPrimes K'' ⊆ {p}
-      · by_cases h2 : p = 2
-        · subst h2; exact case_two K'' (hdeg'' : Module.finrank ℚ K'' = 2 ^ m') hram
-        · have hodd : Odd p := hp.odd_of_ne_two h2
-          exact case_odd hp hodd K'' hdeg'' hram
-      · have hq_exists : ∃ q, q ∈ ramifiedPrimes K'' ∧ q ≠ p := by
-          rw [Set.not_subset] at hram
-          rcases hram with ⟨q, hqmem, hqnot⟩
-          exact ⟨q, hqmem, hqnot⟩
-        rcases hq_exists with ⟨q, hqmem, hqp⟩
-        have hq_prime : q.Prime := hqmem.1
-        rcases inertia_field_strip_prime K'' hp hdeg'' hq_prime hqp hqmem with
-          ⟨K''', _, _, _, ⟨m''', hdeg'''⟩, hcard, himpl⟩
-        have h_lt' : (ramifiedPrimes K''').ncard < (ramifiedPrimes K'').ncard := hcard
-        have hn' : (ramifiedPrimes K'').ncard ≤ n := hn
-        have h_le' : (ramifiedPrimes K''').ncard ≤ n := Nat.le_of_lt (Nat.lt_of_lt_of_le h_lt' hn')
-        have h_ih : IsContainedInCyclotomic K''' :=
-          ih (ramifiedPrimes K''').ncard h_lt' K''' m''' hdeg''' h_le'
-        exact himpl h_ih
-    exact hprime (ramifiedPrimes K').ncard K' m hdeg' (Nat.le_refl _)
-  exact reduction_prime_power hH K
+  -- Assemble from the reductions and the two prime cases. The strip-prime
+  -- induction lives inside `reduction_single_prime`. Universes are pinned to `u`
+  -- so the inner field variables do not leave universe metavariables.
+  apply reduction_prime_power.{u, u}
+  intro K' _ _ _ hdeg
+  obtain ⟨p, m, hp, hdeg'⟩ := hdeg
+  refine reduction_single_prime.{u, u} hp ?_ K' hdeg'
+  intro K'' _ _ _ hpm hram
+  obtain ⟨m', hdeg''⟩ := hpm
+  by_cases h2 : p = 2
+  · subst h2
+    exact case_two K'' hdeg'' hram
+  · exact case_odd hp (hp.odd_of_ne_two h2) K'' hdeg'' hram
 
 end KroneckerWeber
