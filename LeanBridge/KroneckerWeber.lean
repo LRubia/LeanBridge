@@ -73,7 +73,91 @@ theorem cyclotomic_unique_subfield {q : ℕ} (hq : q.Prime) {e : ℕ} (he : e �
       Module.finrank ℚ L = e ∧
       Ideal.ramificationIdxIn (Ideal.span {(q : ℤ)}) (𝓞 L) = e ∧
       ∀ L' : IntermediateField ℚ (CyclotomicField q ℚ), Module.finrank ℚ L' = e → L' = L := by
-  sorry
+  classical
+  haveI : Fact q.Prime := ⟨hq⟩
+  haveI : NeZero q := ⟨hq.ne_zero⟩
+  haveI : NeZero ((q : ℕ) : ℚ) := ⟨Nat.cast_ne_zero.mpr (NeZero.ne q)⟩
+  haveI : IsCyclotomicExtension {q} ℚ (CyclotomicField q ℚ) :=
+    CyclotomicField.isCyclotomicExtension q ℚ
+  haveI : IsGalois ℚ (CyclotomicField q ℚ) :=
+    IsCyclotomicExtension.isGalois {q} ℚ (CyclotomicField q ℚ)
+  haveI : FiniteDimensional ℚ (CyclotomicField q ℚ) := inferInstance
+  have hq1 : 1 ≤ q - 1 := by have := hq.two_le; omega
+  -- Galois group `Gal(ℚ(ζ_q)/ℚ) ≅ (ZMod q)ˣ`, cyclic of order `q - 1`.
+  let ee : (CyclotomicField q ℚ ≃ₐ[ℚ] CyclotomicField q ℚ) ≃* (ZMod q)ˣ :=
+    IsCyclotomicExtension.Rat.galEquivZMod q (CyclotomicField q ℚ)
+  let φ : (CyclotomicField q ℚ ≃ₐ[ℚ] CyclotomicField q ℚ) →* (ZMod q)ˣ := ee
+  have hφ : Function.Injective φ := ee.injective
+  haveI hUcyc : IsCyclic (ZMod q)ˣ := inferInstance
+  haveI hGcyc : IsCyclic (CyclotomicField q ℚ ≃ₐ[ℚ] CyclotomicField q ℚ) :=
+    isCyclic_of_surjective ee.symm ee.symm.surjective
+  -- The target subgroup has cardinality `d = (q-1)/e`, giving index (hence degree) `e`.
+  set d := (q - 1) / e with hd_def
+  have hde : d * e = q - 1 := Nat.div_mul_cancel he
+  have hd_dvd : d ∣ q - 1 := ⟨e, hde.symm⟩
+  have he0 : 0 < e := by
+    rcases Nat.eq_zero_or_pos e with h | h
+    · rw [h, Nat.mul_zero] at hde; omega
+    · exact h
+  have hd0 : 0 < d := by
+    rcases Nat.eq_zero_or_pos d with h | h
+    · rw [h, Nat.zero_mul] at hde; omega
+    · exact h
+  have hcardU : Nat.card (ZMod q)ˣ = q - 1 := by
+    rw [Nat.card_eq_fintype_card, ZMod.card_units_eq_totient, Nat.totient_prime hq]
+  have hcardG : Nat.card (CyclotomicField q ℚ ≃ₐ[ℚ] CyclotomicField q ℚ) = q - 1 := by
+    rw [Nat.card_congr ee.toEquiv, hcardU]
+  set HU : Subgroup (ZMod q)ˣ := (powMonoidHom d).ker with hHU
+  have hcardHU : Nat.card HU = d := by
+    rw [hHU, IsCyclic.card_powMonoidHom_ker, hcardU, Nat.gcd_eq_right hd_dvd]
+  have huniqU : ∀ S : Subgroup (ZMod q)ˣ, Nat.card S = d → S = HU := by
+    intro S hS
+    have hle : S ≤ HU := by
+      intro x hx
+      have hxo : (⟨x, hx⟩ : S) ^ d = 1 :=
+        orderOf_dvd_iff_pow_eq_one.mp (hS ▸ orderOf_dvd_natCard _)
+      have hx1 : x ^ d = 1 := by
+        have h2 := congrArg (fun y : S => (y : (ZMod q)ˣ)) hxo
+        simpa using h2
+      simpa [hHU, MonoidHom.mem_ker, powMonoidHom] using hx1
+    exact Subgroup.eq_of_le_of_card_ge hle (le_of_eq (hcardHU.trans hS.symm))
+  set H : Subgroup (CyclotomicField q ℚ ≃ₐ[ℚ] CyclotomicField q ℚ) := HU.comap φ with hHdef
+  have hcardH : Nat.card H = d := by
+    rw [hHdef, Subgroup.comap_equiv_eq_map_symm, Nat.card_congr (Subgroup.equivMapOfInjective _ _
+      ee.symm.injective).toEquiv.symm, hcardHU]
+  haveI : H.Normal := by
+    refine ⟨fun a ha g => ?_⟩
+    have heq : φ (g * a * g⁻¹) = φ a := by
+      simp only [map_mul, map_inv]
+      rw [mul_comm (φ g) (φ a), mul_assoc, mul_inv_cancel, mul_one]
+    simpa [hHdef, Subgroup.mem_comap, heq] using ha
+  refine ⟨IntermediateField.fixedField H, ?_, ?_, ?_⟩
+  · -- degree `= e`
+    rw [IntermediateField.finrank_eq_fixingSubgroup_index,
+      IntermediateField.fixingSubgroup_fixedField]
+    have hmul := Subgroup.index_mul_card H
+    rw [hcardH, hcardG] at hmul
+    have hmul' : H.index * d = e * d := by rw [hmul, ← hde, Nat.mul_comm]
+    exact Nat.eq_of_mul_eq_mul_right hd0 hmul'
+  · -- ramification `= e`
+    sorry
+  · -- uniqueness
+    intro L' hL'
+    have hidx : (IntermediateField.fixingSubgroup L').index = e := by
+      rw [← IntermediateField.finrank_eq_fixingSubgroup_index]; exact hL'
+    have hcardH' : Nat.card (IntermediateField.fixingSubgroup L') = d := by
+      have hmul := Subgroup.index_mul_card (IntermediateField.fixingSubgroup L')
+      rw [hidx, hcardG] at hmul
+      have hmul' : e * Nat.card (IntermediateField.fixingSubgroup L') = e * d := by
+        rw [hmul, ← hde, Nat.mul_comm]
+      exact Nat.eq_of_mul_eq_mul_left he0 hmul'
+    set S : Subgroup (ZMod q)ˣ := (IntermediateField.fixingSubgroup L').map φ with hS
+    have hcardS : Nat.card S = d := by
+      rw [hS, Subgroup.card_map_of_injective hφ, hcardH']
+    have hSHU : S = HU := huniqU S hcardS
+    have hfix : IntermediateField.fixingSubgroup L' = H := by
+      rw [hHdef, ← hSHU, hS, Subgroup.comap_map_eq_self_of_injective hφ]
+    rw [← IsGalois.fixedField_fixingSubgroup L', hfix]
 
 /-- **Stripping one ramified prime via the inertia field.** In the setting of `tame_inertia_cyclic`,
 there is an abelian extension `K'/ℚ` of `p`-power degree with strictly fewer ramified primes than
