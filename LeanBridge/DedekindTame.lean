@@ -111,7 +111,6 @@ theorem trace_mulPow_restrict_range (x : S) (i : ℕ) :
       LinearEquiv.ofInjective_apply, mulPow_coe_apply, Ideal.powQuotSuccInclusion_apply_coe]
   rw [hconj, LinearMap.trace_conj']
 
-set_option maxHeartbeats 1000000 in
 /-- The trace of `mulPow x i` on the graded quotient `(P^i/P^e)/(P^(i+1)/P^e) ≃ S/P`
 equals the residue-field trace of `x`. -/
 theorem trace_mulPow_mapQ (x : S) (hP0 : P ≠ ⊥) {i : ℕ} (hi : i < e) :
@@ -127,13 +126,16 @@ theorem trace_mulPow_mapQ (x : S) (hP0 : P ≠ ⊥) {i : ℕ} (hi : i < e) :
     LinearEquiv.ofBijective (Ideal.quotientToQuotientRangePowQuotSucc p P ha_mem)
       ⟨Ideal.quotientToQuotientRangePowQuotSucc_injective p P hi ha_mem ha_notMem,
        Ideal.quotientToQuotientRangePowQuotSucc_surjective p P hP0 hi ha_mem ha_notMem⟩ with hE
-  -- Intertwining `mapQ ∘ E = E ∘ (mult by x)`, using only the explicit forward map `E`.
-  have hint : ((LinearMap.range (Ideal.powQuotSuccInclusion p P i)).mapQ _ (mulPow x i)
-        (mulPow_mapsTo_range x i)) ∘ₗ E.toLinearMap
+  -- Keep the graded multiplication map opaque so the conjugation defeq checks stay cheap.
+  set f := (LinearMap.range (Ideal.powQuotSuccInclusion p P i)).mapQ
+    (LinearMap.range (Ideal.powQuotSuccInclusion p P i)) (mulPow x i)
+    (mulPow_mapsTo_range x i) with hf
+  -- Intertwining `f ∘ E = E ∘ (mult by x)`, using only the explicit forward map `E`.
+  have hint : f ∘ₗ E.toLinearMap
       = E.toLinearMap ∘ₗ Algebra.lmul (R ⧸ p) (S ⧸ P) (Ideal.Quotient.mk P x) := by
-    ext y
-    obtain ⟨y, rfl⟩ := Submodule.Quotient.mk_surjective P y
-    simp only [LinearMap.coe_comp, Function.comp_apply, hE, LinearEquiv.coe_coe,
+    refine LinearMap.ext fun w => ?_
+    obtain ⟨y, rfl⟩ := Submodule.Quotient.mk_surjective P w
+    simp only [hf, LinearMap.coe_comp, Function.comp_apply, hE, LinearEquiv.coe_coe,
       LinearEquiv.ofBijective_apply, Algebra.coe_lmul_eq_mul, LinearMap.mul_apply']
     rw [Ideal.quotientToQuotientRangePowQuotSucc_mk, Submodule.mapQ_apply,
       show (Ideal.Quotient.mk P x) * Submodule.Quotient.mk y
@@ -143,16 +145,12 @@ theorem trace_mulPow_mapQ (x : S) (hP0 : P ≠ ⊥) {i : ℕ} (hi : i < e) :
     simp only [mulPow_coe_apply, ← map_mul]
     congr 1
     ring
-  have hconj : E.symm.conj ((LinearMap.range (Ideal.powQuotSuccInclusion p P i)).mapQ _
-        (mulPow x i) (mulPow_mapsTo_range x i))
-      = Algebra.lmul (R ⧸ p) (S ⧸ P) (Ideal.Quotient.mk P x) := by
-    ext z
+  have hconj : E.symm.conj f = Algebra.lmul (R ⧸ p) (S ⧸ P) (Ideal.Quotient.mk P x) := by
+    refine LinearMap.ext fun z => ?_
     simp only [LinearEquiv.conj_apply, LinearMap.coe_comp, LinearEquiv.coe_coe,
       Function.comp_apply, LinearEquiv.symm_symm]
-    rw [show ((LinearMap.range (Ideal.powQuotSuccInclusion p P i)).mapQ _ (mulPow x i)
-        (mulPow_mapsTo_range x i)) (E z) = E (Algebra.lmul (R ⧸ p) (S ⧸ P)
-        (Ideal.Quotient.mk P x) z) from LinearMap.congr_fun hint z,
-      LinearEquiv.symm_apply_apply]
+    rw [show f (E z) = E (Algebra.lmul (R ⧸ p) (S ⧸ P) (Ideal.Quotient.mk P x) z)
+        from LinearMap.congr_fun hint z, LinearEquiv.symm_apply_apply]
   rw [← LinearMap.trace_conj' _ E.symm, hconj, Algebra.trace_apply]
 
 set_option maxHeartbeats 4000000 in
