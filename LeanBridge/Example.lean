@@ -47,43 +47,90 @@ Concretely: take `g : ℚ_p[X]` monic of degree `n` that reduces mod `p` to an
 irreducible polynomial over the residue field `𝔽_p`. Then `L = ℚ_p[X]/(g)` is the
 unramified extension of degree `n` (`e = 1`, residue field grows to degree `n`).
 Here `g` is carried as an explicit polynomial with its irreducibility as a `Fact`. -/
-section Unramified
+section UnramifiedConcrete
 
-variable {p : ℕ} [Fact p.Prime] (n : ℕ)
-  (g : Polynomial ℚ_[p]) [Fact (Irreducible g)]
+def zeta3PolyZ : Polynomial ℤ_[2] := X ^ 2 + C 1 * X + C 1
 
-/-- `L = ℚ_p[X]/(g)`, the unramified extension of degree `n = deg g`. -/
-abbrev Unr : Type _ := AdjoinRoot g
+abbrev zeta3Poly : Polynomial ℚ_[2] := zeta3PolyZ.map (algebraMap ℤ_[2] ℚ_[2])
 
-instance : Module.Finite ℚ_[p] (Unr g) :=
-  PowerBasis.finite (AdjoinRoot.powerBasis (Irreducible.ne_zero (Fact.out : Irreducible g)))
+theorem zeta3PolyZ_monic : zeta3PolyZ.Monic := by
+  unfold zeta3PolyZ
+  monicity!
 
-instance : PadicField (Unr g) p := PadicField.mk
+theorem zeta3_reduction_irreducible :
+    Irreducible (zeta3PolyZ.map (PadicInt.toZMod : ℤ_[2] →+* ZMod 2)) := by
+  have hmap : zeta3PolyZ.map (PadicInt.toZMod : ℤ_[2] →+* ZMod 2)
+      = X ^ 2 + X + 1 := by
+    unfold zeta3PolyZ
+    simp [Polynomial.map_add, Polynomial.map_pow, Polynomial.map_X, Polynomial.C_1, one_mul]
+  rw [hmap]
+  apply Polynomial.irreducible_of_degree_le_three_of_not_isRoot
+  · have hdeg : (X ^ 2 + X + 1 : Polynomial (ZMod 2)).natDegree = 2 := by
+      compute_degree!
+    rw [hdeg]
+    norm_num
+  · intro x hx
+    simp only [Polynomial.IsRoot.def] at hx
+    fin_cases x <;>
+      simp only [Polynomial.eval_add, Polynomial.eval_pow, Polynomial.eval_X,
+        Polynomial.eval_one] at hx <;>
+      revert hx <;> decide
 
-/-- Ramification index is `1`. -/
-theorem Unr_ramificationIdx : ramificationIdx ℚ_[p] (Unr g) = 1 := sorry
+instance instFactIrreducibleZeta3 : Fact (Irreducible zeta3Poly) := ⟨by
+  have hmon : zeta3PolyZ.Monic := zeta3PolyZ_monic
+  have hZ : Irreducible zeta3PolyZ :=
+    Polynomial.Monic.irreducible_of_irreducible_map
+      PadicInt.toZMod zeta3PolyZ hmon zeta3_reduction_irreducible
+  exact (hmon.isPrimitive.irreducible_iff_irreducible_map_fraction_map (K := ℚ_[2])).mp hZ⟩
 
-/-- Residue degree is the full degree: `f = n = [L:K]`. -/
-theorem Unr_inertiaDeg (hg : g.natDegree = n) :
-    inertiaDeg ℚ_[p] (Unr g) = n := by
-  have hfr : Module.finrank ℚ_[p] (Unr g) = n := by
-    rw [PowerBasis.finrank
-        (AdjoinRoot.powerBasis (Irreducible.ne_zero (Fact.out : Irreducible g))),
-      AdjoinRoot.powerBasis_dim]
-    exact hg
-  have h := ramificationIdx_mul_inertiaDeg ℚ_[p] (Unr g)
-  rw [Unr_ramificationIdx g, one_mul, hfr] at h
+abbrev Q2zeta3 : Type _ := AdjoinRoot zeta3Poly
+
+instance : Module.Finite ℚ_[2] Q2zeta3 :=
+  PowerBasis.finite
+    (AdjoinRoot.powerBasis (Irreducible.ne_zero (Fact.out : Irreducible zeta3Poly)))
+
+instance : PadicField Q2zeta3 2 := PadicField.mk
+
+theorem Q2zeta3_finrank : Module.finrank ℚ_[2] Q2zeta3 = 2 := by
+  rw [PowerBasis.finrank
+      (AdjoinRoot.powerBasis (Irreducible.ne_zero (Fact.out : Irreducible zeta3Poly))),
+    AdjoinRoot.powerBasis_dim]
+  show (zeta3PolyZ.map (algebraMap ℤ_[2] ℚ_[2])).natDegree = 2
+  rw [Polynomial.natDegree_map_eq_of_injective (IsFractionRing.injective ℤ_[2] ℚ_[2])]
+  unfold zeta3PolyZ
+  compute_degree!
+
+theorem Q2zeta3_inertiaDeg_ge : 2 ≤ inertiaDeg ℚ_[2] Q2zeta3 := sorry
+
+theorem Q2zeta3_ramificationIdx : ramificationIdx ℚ_[2] Q2zeta3 = 1 := by
+  have hef : ramificationIdx ℚ_[2] Q2zeta3 * inertiaDeg ℚ_[2] Q2zeta3 = 2 := by
+    have h := ramificationIdx_mul_inertiaDeg ℚ_[2] Q2zeta3
+    rwa [Q2zeta3_finrank] at h
+  have hfge : 2 ≤ inertiaDeg ℚ_[2] Q2zeta3 := Q2zeta3_inertiaDeg_ge
+  have he_le : ramificationIdx ℚ_[2] Q2zeta3 ≤ 1 :=
+    Nat.le_of_mul_le_mul_right
+      (by calc ramificationIdx ℚ_[2] Q2zeta3 * inertiaDeg ℚ_[2] Q2zeta3
+              = 2 := hef
+            _ ≤ inertiaDeg ℚ_[2] Q2zeta3 := hfge
+            _ = 1 * inertiaDeg ℚ_[2] Q2zeta3 := (one_mul _).symm)
+      (by omega)
+  have he_pos : 0 < ramificationIdx ℚ_[2] Q2zeta3 := by
+    rcases Nat.eq_zero_or_pos (ramificationIdx ℚ_[2] Q2zeta3) with h | h
+    · rw [h, zero_mul] at hef; omega
+    · exact h
+  omega
+
+theorem Q2zeta3_isUnramified : IsUnramified ℚ_[2] Q2zeta3 := Q2zeta3_ramificationIdx
+
+theorem Q2zeta3_inertiaDeg : inertiaDeg ℚ_[2] Q2zeta3 = 2 := by
+  have h := ramificationIdx_mul_inertiaDeg ℚ_[2] Q2zeta3
+  rw [Q2zeta3_ramificationIdx, one_mul, Q2zeta3_finrank] at h
   exact h
 
-/-- `L/ℚ_p` is unramified. -/
-theorem Unr_isUnramified : IsUnramified ℚ_[p] (Unr g) := Unr_ramificationIdx g
+theorem Q2zeta3_discriminantExponent : discriminantExponent ℚ_[2] Q2zeta3 = 0 :=
+  (discExponent_eq_zero_iff_unramified ℚ_[2] Q2zeta3).mpr Q2zeta3_isUnramified
 
-/-- Discriminant exponent vanishes: `d = 0`. -/
-theorem Unr_discriminantExponent : discriminantExponent ℚ_[p] (Unr g) = 0 :=
-  (discExponent_eq_zero_iff_unramified ℚ_[p] (Unr g)).mpr (Unr_isUnramified g)
-
-end Unramified
-
+end UnramifiedConcrete
 /-! ## Case 2 — `ℚ_p(p^{1/e}) = ℚ_p[X]/(Xᵉ − p)`  (`d = e − 1`)
 
 Eisenstein, hence irreducible for `e ≥ 1`; the extension is totally ramified
@@ -366,7 +413,7 @@ instance : Module.Finite ℚ_[2] Q2sqrt2 :=
   PowerBasis.finite
     (AdjoinRoot.powerBasis (Irreducible.ne_zero (Fact.out : Irreducible sqrtTwoPoly)))
 
-instance : PadicField Q2sqrt2 2 := inferInstance
+instance : PadicField Q2sqrt2 2 := PadicField.mk
 
 /-- `[ℚ_2(√2) : ℚ_2] = 2`. -/
 theorem Q2sqrt2_finrank : Module.finrank ℚ_[2] Q2sqrt2 = 2 := by
@@ -450,51 +497,42 @@ theorem Q2sqrt2_differentExponent : differentExponent ℚ_[2] Q2sqrt2 = 3 := by
   haveI : Module.IsTorsionFree (𝒪 ℚ_[2]) (𝒪 Q2sqrt2) :=
     Module.isTorsionFree_iff_algebraMap_injective.mpr (FaithfulSMul.algebraMap_injective _ _)
   obtain ⟨θ, hθmem, hθpow⟩ := Q2sqrt2_exists_integral_root
-  have hpElt2 : pElt 2 = (2 : 𝒪 ℚ_[2]) := by
-    apply Subtype.ext
-    rfl
-  have h2θ : (2 : 𝒪 Q2sqrt2) = θ ^ 2 := by rw [hθpow, hpElt2, map_ofNat]
-  have hmap_two : algebraMap (𝒪 ℚ_[2]) (𝒪 Q2sqrt2) (2 : 𝒪 ℚ_[2]) =
-      (2 : 𝒪 Q2sqrt2) := by
-    apply Subtype.ext
-    rfl
-  have hpElt_ne : (pElt 2) ≠ 0 := by
-    simp only [pElt]
-    rw [Ne, map_eq_zero_iff _ (FaithfulSMul.algebraMap_injective ℤ_[2] (𝒪 ℚ_[2]))]
-    norm_num
-  have hθne : θ ≠ 0 := by
-    intro h
+  have hpElt2 : pElt 2 = (2 : 𝒪 ℚ_[2]) := Subtype.ext rfl
+  have hmap_two : algebraMap (𝒪 ℚ_[2]) (𝒪 Q2sqrt2) (2 : 𝒪 ℚ_[2]) = (2 : 𝒪 Q2sqrt2) :=
+    Subtype.ext rfl
+  have hθne : θ ≠ 0 := fun h => by
     rw [h, zero_pow (by norm_num)] at hθpow
-    exact hpElt_ne ((map_eq_zero_iff _ (FaithfulSMul.algebraMap_injective _ _)).mp hθpow.symm)
-  have hmapne : (IsLocalRing.maximalIdeal (𝒪 ℚ_[2])).map
-      (algebraMap (𝒪 ℚ_[2]) (𝒪 Q2sqrt2)) ≠ ⊥ := by
-    rw [Ne, Ideal.map_eq_bot_iff_of_injective (FaithfulSMul.algebraMap_injective _ _)]
-    exact IsDiscreteValuationRing.not_a_field (𝒪 ℚ_[2])
+    exact absurd ((map_eq_zero_iff _ (FaithfulSMul.algebraMap_injective _ _)).mp hθpow.symm)
+      (by simp only [pElt]; rw [map_eq_zero_iff _ (FaithfulSMul.algebraMap_injective ℤ_[2] _)];
+          norm_num)
   have hstrictL : StrictAnti (fun n : ℕ => (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) ^ n) :=
     Ideal.pow_right_strictAnti _ (IsDiscreteValuationRing.not_a_field _)
       (IsLocalRing.maximalIdeal.isMaximal _).ne_top
   have hmapId : (IsLocalRing.maximalIdeal (𝒪 ℚ_[2])).map (algebraMap (𝒪 ℚ_[2]) (𝒪 Q2sqrt2))
       = (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) ^ 2 := by
-    obtain ⟨m, hm⟩ := exists_maximalIdeal_pow_of_ne_bot hmapne
+    obtain ⟨m, hm⟩ := exists_maximalIdeal_pow_of_ne_bot (by
+      rw [Ne, Ideal.map_eq_bot_iff_of_injective
+        (FaithfulSMul.algebraMap_injective (𝒪 ℚ_[2]) (𝒪 Q2sqrt2))]
+      exact IsDiscreteValuationRing.not_a_field (𝒪 ℚ_[2]))
     have hram : ramificationIdx ℚ_[2] Q2sqrt2 = m := by
       show Ideal.ramificationIdx (R := 𝒪 ℚ_[2]) (S := 𝒪 Q2sqrt2)
         (IsLocalRing.maximalIdeal (𝒪 ℚ_[2])) (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) = m
       refine Ideal.ramificationIdx_spec (le_of_eq hm) ?_
-      rw [hm]; exact (hstrictL (Nat.lt_succ_self m)).2
-    rw [Q2sqrt2_ramificationIdx] at hram
-    rw [hm, ← hram]
-  have hsqfull : Ideal.span {θ} ^ 2 = (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) ^ 2 := by
-    rw [← hmapId, Ideal.span_singleton_pow, hθpow, Qpe_maximalIdeal_eq_span (p := 2),
-      Ideal.map_span, Set.image_singleton]
-  obtain ⟨n, hn⟩ := exists_maximalIdeal_pow_of_ne_bot (I := Ideal.span {θ})
-    (by rwa [Ne, Ideal.span_singleton_eq_bot])
-  have hn1 : n = 1 := by
-    have hpow : (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) ^ (n * 2)
-        = (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) ^ 2 := by
-      rw [← hsqfull, hn, ← pow_mul]
-    have := hstrictL.injective hpow
-    omega
+      rw [hm]
+      exact (hstrictL (Nat.lt_succ_self m)).2
+    rw [Q2sqrt2_ramificationIdx] at hram; rw [hm, ← hram]
   have huniformizer : IsLocalRing.maximalIdeal (𝒪 Q2sqrt2) = Ideal.span {θ} := by
+    have hsqfull : Ideal.span {θ} ^ 2 = (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) ^ 2 := by
+      rw [← hmapId, Ideal.span_singleton_pow, hθpow, Qpe_maximalIdeal_eq_span (p := 2),
+        Ideal.map_span, Set.image_singleton]
+    obtain ⟨n, hn⟩ := exists_maximalIdeal_pow_of_ne_bot (I := Ideal.span {θ})
+      (by rwa [Ne, Ideal.span_singleton_eq_bot])
+    have hn1 : n = 1 := by
+      have hpow : (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) ^ (n * 2)
+          = (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) ^ 2 := by
+        rw [← hsqfull, hn, ← pow_mul]
+      have := hstrictL.injective hpow
+      omega
     rw [hn, hn1, pow_one]
   have hθirr : Irreducible θ :=
     IsDiscreteValuationRing.irreducible_of_span_eq_maximalIdeal θ hθne huniformizer
@@ -521,7 +559,11 @@ theorem Q2sqrt2_differentExponent : differentExponent ℚ_[2] Q2sqrt2 = 3 := by
     rwa [Set.pair_eq_singleton] at h
   have hcond : conductor (𝒪 ℚ_[2]) θ = ⊤ := by
     rw [Ideal.eq_top_iff_one, mem_conductor_iff]
-    intro b; rw [one_mul, hadjθ]; exact Algebra.mem_top
+    intro b
+    rw [one_mul, hadjθ]
+    exact Algebra.mem_top
+  have h2θ : (2 : 𝒪 Q2sqrt2) = θ ^ 2 := by
+    rw [hθpow, hpElt2, map_ofNat]
   have hθ_int : IsIntegral (𝒪 ℚ_[2]) θ := Algebra.IsIntegral.isIntegral θ
   set x := algebraMap (𝒪 Q2sqrt2) Q2sqrt2 θ with hxdef
   have hxL_int : IsIntegral ℚ_[2] x := Algebra.IsIntegral.isIntegral x
@@ -601,5 +643,6 @@ end WildQ2
 end PadicFieldTests
 
 end
+
 
 
