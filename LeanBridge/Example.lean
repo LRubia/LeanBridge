@@ -100,7 +100,87 @@ theorem Q2zeta3_finrank : Module.finrank ℚ_[2] Q2zeta3 = 2 := by
   unfold zeta3PolyZ
   compute_degree!
 
-theorem Q2zeta3_inertiaDeg_ge : 2 ≤ inertiaDeg ℚ_[2] Q2zeta3 := sorry
+open IsLocalRing in
+theorem Q2zeta3_inertiaDeg_ge : 2 ≤ inertiaDeg ℚ_[2] Q2zeta3 := by
+  classical
+  set R := 𝒪 ℚ_[2]; set S := 𝒪 Q2zeta3
+  set kR := IsLocalRing.ResidueField R; set kS := IsLocalRing.ResidueField S
+  -- 0）归约到 finrank
+  have hconv : inertiaDeg ℚ_[2] Q2zeta3 = Module.finrank kR kS := by
+    show Ideal.inertiaDeg (IsLocalRing.maximalIdeal R) (IsLocalRing.maximalIdeal S) = _
+    rw [Ideal.inertiaDeg_algebraMap]
+    rfl
+  rw [hconv]
+  haveI : Module.Finite kR kS := IsLocalRing.ResidueField.finite_of_module_finite
+  -- 素材 1：θ, θ̄
+  have hroot0 : Polynomial.aeval (AdjoinRoot.root zeta3Poly) zeta3Poly = 0 := by
+    rw [AdjoinRoot.aeval_eq, AdjoinRoot.mk_self]
+  have hrootL : Polynomial.aeval (AdjoinRoot.root zeta3Poly) zeta3PolyZ = 0 := by
+    have h := hroot0; rwa [Polynomial.aeval_map_algebraMap] at h
+  have hint : IsIntegral ℤ_[2] (AdjoinRoot.root zeta3Poly) :=
+    ⟨zeta3PolyZ, zeta3PolyZ_monic, hrootL⟩
+  set θ : S := ⟨AdjoinRoot.root zeta3Poly, hint⟩
+  have hrootS : Polynomial.aeval θ zeta3PolyZ = 0 := by
+    apply Subtype.ext
+    have h : (Subalgebra.val (𝒪 Q2zeta3)) (Polynomial.aeval θ zeta3PolyZ)
+        = Polynomial.aeval (AdjoinRoot.root zeta3Poly) zeta3PolyZ :=
+      (Polynomial.aeval_algHom_apply (Subalgebra.val (𝒪 Q2zeta3)) θ zeta3PolyZ).symm
+    rw [hrootL] at h
+    simpa using h
+  set θbar : kS := IsLocalRing.residue S θ
+  -- 素材 2：ḡ
+  set φR : ℤ_[2] →+* kR := (IsLocalRing.residue R).comp (algebraMap ℤ_[2] R)
+  set gbar : Polynomial kR := zeta3PolyZ.map φR
+  have gbar_monic : gbar.Monic := zeta3PolyZ_monic.map φR
+  have gbar_irred : Irreducible gbar := by
+    have hsurj : Function.Surjective (algebraMap ℤ_[2] (𝒪 ℚ_[2])) := by
+      rintro ⟨y, hy⟩
+      obtain ⟨a, ha⟩ := (IsIntegrallyClosed.isIntegral_iff (R := ℤ_[2]) (K := ℚ_[2])).mp hy
+      exact ⟨a, Subtype.ext ha⟩
+    let eOI : ℤ_[2] ≃+* (𝒪 ℚ_[2]) :=
+      RingEquiv.ofBijective (algebraMap ℤ_[2] (𝒪 ℚ_[2]))
+        ⟨FaithfulSMul.algebraMap_injective _ _, hsurj⟩
+    haveI : IsLocalHom (eOI.symm) := isLocalHom_equiv eOI.symm
+    haveI : IsLocalHom (↑(eOI.symm) : (𝒪 ℚ_[2]) →+* ℤ_[2]) := isLocalHom_toRingHom eOI.symm
+    set ε : kR ≃+* ZMod 2 :=
+      (IsLocalRing.ResidueField.mapEquiv eOI.symm).trans PadicInt.residueField with hε
+    have hcomp2 : (↑ε : kR →+* ZMod 2).comp φR = PadicInt.toZMod := by
+      ext x
+      show ε (φR x) = PadicInt.toZMod x
+      rw [hε]
+      show PadicInt.residueField (IsLocalRing.ResidueField.mapEquiv eOI.symm
+          (IsLocalRing.residue (𝒪 ℚ_[2]) (eOI x))) = PadicInt.toZMod x
+      rw [IsLocalRing.ResidueField.mapEquiv_apply, IsLocalRing.ResidueField.map_residue,
+          PadicInt.toZMod_eq_residueField_comp_residue]
+      simp only [RingHom.coe_coe, RingEquiv.symm_apply_apply, RingHom.comp_apply]
+      rfl
+    apply (MulEquiv.irreducible_iff (Polynomial.mapEquiv ε)).mp
+    rw [Polynomial.mapEquiv_apply]
+    show Irreducible (Polynomial.map (↑ε : kR →+* ZMod 2) (zeta3PolyZ.map φR))
+    rw [Polynomial.map_map, hcomp2]
+    exact zeta3_reduction_irreducible
+  -- 素材 3
+  have gbar_root : Polynomial.aeval θbar gbar = 0 := by
+    show Polynomial.aeval θbar (zeta3PolyZ.map φR) = 0
+    rw [Polynomial.aeval_def, Polynomial.eval₂_map]
+    have hcomp : (algebraMap kR kS).comp φR
+        = (IsLocalRing.residue S).comp (algebraMap ℤ_[2] S) := by
+      ext x
+      show algebraMap kR kS (IsLocalRing.residue R (algebraMap ℤ_[2] R x))
+          = IsLocalRing.residue S (algebraMap ℤ_[2] S x)
+      rw [IsLocalRing.ResidueField.algebraMap_residue,
+          ← IsScalarTower.algebraMap_apply ℤ_[2] (↥R) (↥S)]
+    rw [hcomp, ← Polynomial.hom_eval₂ zeta3PolyZ (algebraMap ℤ_[2] S) (IsLocalRing.residue S) θ,
+      ← Polynomial.aeval_def, hrootS, map_zero]
+  -- 引擎
+  have hmin : minpoly kR θbar = gbar :=
+    (minpoly.eq_of_irreducible_of_monic gbar_irred gbar_root gbar_monic).symm
+  have hdegZ : zeta3PolyZ.natDegree = 2 := by unfold zeta3PolyZ; compute_degree!
+  have hdeg : (minpoly kR θbar).natDegree = 2 := by
+    rw [hmin]; show (zeta3PolyZ.map φR).natDegree = 2
+    rw [zeta3PolyZ_monic.natDegree_map, hdegZ]
+  calc (2 : ℕ) = (minpoly kR θbar).natDegree := hdeg.symm
+    _ ≤ Module.finrank kR kS := minpoly.natDegree_le θbar
 
 theorem Q2zeta3_ramificationIdx : ramificationIdx ℚ_[2] Q2zeta3 = 1 := by
   have hef : ramificationIdx ℚ_[2] Q2zeta3 * inertiaDeg ℚ_[2] Q2zeta3 = 2 := by
