@@ -1,6 +1,4 @@
 import Mathlib
--- Adjust this import to the module that defines `PadicField` (the file you shared),
--- likely `LeanBridge.PadicInv` given the blueprint path `numina/blueprints/padicinv/`.
 import LeanBridge.PadicInv
 
 /-!
@@ -101,29 +99,31 @@ def eisenstein : Polynomial ℚ_[p] := X ^ e - C (p : ℚ_[p])
 instance : Fact (Irreducible (eisenstein (p := p) e)) := by
   have he : e ≠ 0 := NeZero.ne e
   refine ⟨?_⟩
-  -- Integral model: `f₀ = Xᵉ − p ∈ ℤ_[p][X]`, Eisenstein at `𝔪 = (p)`.
   set f₀ : ℤ_[p][X] := X ^ e - C (p : ℤ_[p]) with hf₀
-  have hmonic : f₀.Monic := by rw [hf₀]; exact monic_X_pow_sub_C _ he
-  have hdeg : f₀.natDegree = e := by rw [hf₀]; exact natDegree_X_pow_sub_C
+  have hmonic : f₀.Monic := by
+    rw [hf₀]
+    exact monic_X_pow_sub_C _ he
+  have hdeg : f₀.natDegree = e := by
+    rw [hf₀]
+    exact natDegree_X_pow_sub_C
   have hprim : f₀.IsPrimitive := hmonic.isPrimitive
   have hp_mem : (p : ℤ_[p]) ∈ IsLocalRing.maximalIdeal ℤ_[p] := by
-    rw [PadicInt.maximalIdeal_eq_span_p]; exact Ideal.mem_span_singleton_self _
-  have hp0 : (p : ℤ_[p]) ≠ 0 := by exact_mod_cast (Fact.out : p.Prime).pos.ne'
+    rw [PadicInt.maximalIdeal_eq_span_p]
+    exact Ideal.mem_span_singleton_self _
   have hEis : f₀.IsEisensteinAt (IsLocalRing.maximalIdeal ℤ_[p]) := by
     refine ⟨?_, ?_, ?_⟩
-    · -- leading coefficient `1 ∉ 𝔪`
-      rw [hmonic.leadingCoeff]
+    · rw [hmonic.leadingCoeff]
       intro h1
       exact (IsLocalRing.maximalIdeal.isMaximal ℤ_[p]).ne_top ((Ideal.eq_top_iff_one _).mpr h1)
-    · -- every strictly-lower coefficient lies in `𝔪`
-      intro n hn
+    · intro n hn
       rw [hdeg] at hn
       rw [hf₀, coeff_sub, coeff_X_pow, coeff_C, if_neg hn.ne, zero_sub]
       by_cases hn0 : n = 0
-      · rw [if_pos hn0]; exact (IsLocalRing.maximalIdeal ℤ_[p]).neg_mem hp_mem
-      · rw [if_neg hn0, neg_zero]; exact Ideal.zero_mem _
-    · -- constant coefficient `−p ∉ 𝔪²`
-      rw [hf₀, coeff_sub, coeff_X_pow, coeff_C, if_neg he.symm, if_pos rfl, zero_sub]
+      · rw [if_pos hn0];
+        exact (IsLocalRing.maximalIdeal ℤ_[p]).neg_mem hp_mem
+      · rw [if_neg hn0, neg_zero]
+        exact Ideal.zero_mem _
+    · rw [hf₀, coeff_sub, coeff_X_pow, coeff_C, if_neg he.symm, if_pos rfl, zero_sub]
       intro hmem
       rw [Ideal.neg_mem_iff, PadicInt.maximalIdeal_eq_span_p, Ideal.span_singleton_pow,
         Ideal.mem_span_singleton] at hmem
@@ -131,18 +131,15 @@ instance : Fact (Irreducible (eisenstein (p := p) e)) := by
       have key : (p : ℤ_[p]) * ((p : ℤ_[p]) * c) = (p : ℤ_[p]) := by
         have e2 : (p : ℤ_[p]) * ((p : ℤ_[p]) * c) = (p : ℤ_[p]) ^ 2 * c := by ring
         rw [e2, ← hc]
-      have hpc1 : (p : ℤ_[p]) * c = 1 := mul_left_cancel₀ hp0 (key.trans (mul_one _).symm)
+      have hpc1 : (p : ℤ_[p]) * c = 1 := mul_left_cancel₀
+        (by exact_mod_cast (Fact.out : p.Prime).pos.ne') (key.trans (mul_one _).symm)
       exact ((IsLocalRing.mem_maximalIdeal _).mp hp_mem) (IsUnit.of_mul_eq_one c hpc1)
-  -- Eisenstein ⇒ irreducible over `ℤ_[p]`.
-  have hirr₀ : Irreducible f₀ :=
-    hEis.irreducible (IsLocalRing.maximalIdeal.isMaximal ℤ_[p]).isPrime hprim
-      (by rw [hdeg]; exact Nat.pos_of_ne_zero he)
-  -- Descend to `ℚ_[p]` by Gauss's lemma.
-  have hmapeq : f₀.map (algebraMap ℤ_[p] ℚ_[p]) = eisenstein (p := p) e := by
+  rw [show eisenstein (p := p) e = f₀.map (algebraMap ℤ_[p] ℚ_[p]) from by
     ext n
-    simp [hf₀, eisenstein, coeff_sub, coeff_X_pow]
-  rw [← hmapeq]
-  exact (hprim.irreducible_iff_irreducible_map_fraction_map (K := ℚ_[p])).mp hirr₀
+    simp [hf₀, eisenstein, coeff_sub, coeff_X_pow]]
+  exact (hprim.irreducible_iff_irreducible_map_fraction_map (K := ℚ_[p])).mp
+    (hEis.irreducible (IsLocalRing.maximalIdeal.isMaximal ℤ_[p]).isPrime hprim
+      (by rw [hdeg]; exact Nat.pos_of_ne_zero he))
 
 variable [Fact (Irreducible (eisenstein (p := p) e))]
 
@@ -150,8 +147,7 @@ variable [Fact (Irreducible (eisenstein (p := p) e))]
 abbrev Qpe : Type _ := AdjoinRoot (eisenstein (p := p) e)
 
 instance : Module.Finite ℚ_[p] (Qpe (p := p) e) :=
-  PowerBasis.finite
-    (AdjoinRoot.powerBasis
+  PowerBasis.finite (AdjoinRoot.powerBasis
       (Irreducible.ne_zero (Fact.out : Irreducible (eisenstein (p := p) e))))
 
 instance : PadicField (Qpe (p := p) e) p := PadicField.mk
@@ -209,9 +205,8 @@ abbrev pElt (p : ℕ) [Fact p.Prime] : 𝒪 ℚ_[p] := algebraMap ℤ_[p] (𝒪 
 theorem Qpe_maximalIdeal_eq_span :
     IsLocalRing.maximalIdeal (𝒪 ℚ_[p]) = Ideal.span {pElt p} := by
   have hpmem : (p : ℤ_[p]) ∈ IsLocalRing.maximalIdeal ℤ_[p] := by
-    rw [PadicInt.maximalIdeal_eq_span_p]; exact Ideal.mem_span_singleton_self _
-  have hinj : Function.Injective (algebraMap ℤ_[p] (𝒪 ℚ_[p])) := by
-    exact FaithfulSMul.algebraMap_injective _ _
+    rw [PadicInt.maximalIdeal_eq_span_p]
+    exact Ideal.mem_span_singleton_self _
   have hsurj : Function.Surjective (algebraMap ℤ_[p] (𝒪 ℚ_[p])) := by
     rintro ⟨x, hx⟩
     have hfr : IsFractionRing ℤ_[p] ℚ_[p] := by infer_instance
@@ -219,7 +214,8 @@ theorem Qpe_maximalIdeal_eq_span :
     refine ⟨a, Subtype.ext ?_⟩
     exact ha
   let equivOI : ℤ_[p] ≃+* 𝒪 ℚ_[p] :=
-    RingEquiv.ofBijective (algebraMap ℤ_[p] (𝒪 ℚ_[p])) ⟨hinj, hsurj⟩
+    RingEquiv.ofBijective (algebraMap ℤ_[p] (𝒪 ℚ_[p]))
+    ⟨FaithfulSMul.algebraMap_injective _ _, hsurj⟩
   have hep : equivOI (p : ℤ_[p]) = pElt p := rfl
   have hpElt_mem : pElt p ∈ IsLocalRing.maximalIdeal (𝒪 ℚ_[p]) := by
     rw [IsLocalRing.mem_maximalIdeal, mem_nonunits_iff]
@@ -349,7 +345,7 @@ it is wildly ramified. One computes `δ = v_L(2√2) = 3` and `d = f·δ = 3`. -
 section WildQ2
 
 /-- `X² − 2 ∈ ℚ_2[X]`. -/
-def sqrtTwoPoly : Polynomial ℚ_[2] := X ^ 2 - C (2 : ℚ_[2])
+abbrev sqrtTwoPoly : Polynomial ℚ_[2] := X ^ 2 - C (2 : ℚ_[2])
 
 instance : Fact (Irreducible sqrtTwoPoly) := ⟨by
   apply Polynomial.irreducible_of_degree_le_three_of_not_isRoot
@@ -438,7 +434,7 @@ theorem Q2sqrt2_not_tame : ¬ IsTamelyRamified ℚ_[2] Q2sqrt2 := by
   exact not_not_intro h
 
 /-- In a DVR, every nonzero ideal is a power of the maximal ideal. -/
-private theorem exists_maximalIdeal_pow_of_ne_bot {S : Type*} [CommRing S] [IsDomain S]
+lemma exists_maximalIdeal_pow_of_ne_bot {S : Type*} [CommRing S] [IsDomain S]
     [IsDiscreteValuationRing S] {I : Ideal S} (hI : I ≠ ⊥) :
     ∃ n : ℕ, I = (IsLocalRing.maximalIdeal S) ^ n := by
   obtain ⟨ϖ, hϖ⟩ := IsDiscreteValuationRing.exists_irreducible S
@@ -448,17 +444,20 @@ private theorem exists_maximalIdeal_pow_of_ne_bot {S : Type*} [CommRing S] [IsDo
 /-- Different exponent `δ = 3` (from `v_L(f'(√2)) = v_L(2√2) = 3`). -/
 theorem Q2sqrt2_differentExponent : differentExponent ℚ_[2] Q2sqrt2 = 3 := by
   classical
-  -- shared instances for the different-ideal API
   haveI : Algebra.IsIntegral (𝒪 ℚ_[2]) (𝒪 Q2sqrt2) := Algebra.IsIntegral.of_finite _ _
   haveI : Algebra.IsIntegral ℚ_[2] Q2sqrt2 := Algebra.IsIntegral.of_finite _ _
   haveI : IsScalarTower (𝒪 ℚ_[2]) ℚ_[2] Q2sqrt2 := IsScalarTower.of_algebraMap_eq fun _ => rfl
   haveI : Module.IsTorsionFree (𝒪 ℚ_[2]) (𝒪 Q2sqrt2) :=
     Module.isTorsionFree_iff_algebraMap_injective.mpr (FaithfulSMul.algebraMap_injective _ _)
-  -- the integral `√2`
   obtain ⟨θ, hθmem, hθpow⟩ := Q2sqrt2_exists_integral_root
   have hpElt2 : pElt 2 = (2 : 𝒪 ℚ_[2]) := by
-    simp only [pElt, map_natCast, Nat.cast_ofNat]
+    apply Subtype.ext
+    rfl
   have h2θ : (2 : 𝒪 Q2sqrt2) = θ ^ 2 := by rw [hθpow, hpElt2, map_ofNat]
+  have hmap_two : algebraMap (𝒪 ℚ_[2]) (𝒪 Q2sqrt2) (2 : 𝒪 ℚ_[2]) =
+      (2 : 𝒪 Q2sqrt2) := by
+    apply Subtype.ext
+    rfl
   have hpElt_ne : (pElt 2) ≠ 0 := by
     simp only [pElt]
     rw [Ne, map_eq_zero_iff _ (FaithfulSMul.algebraMap_injective ℤ_[2] (𝒪 ℚ_[2]))]
@@ -467,7 +466,6 @@ theorem Q2sqrt2_differentExponent : differentExponent ℚ_[2] Q2sqrt2 = 3 := by
     intro h
     rw [h, zero_pow (by norm_num)] at hθpow
     exact hpElt_ne ((map_eq_zero_iff _ (FaithfulSMul.algebraMap_injective _ _)).mp hθpow.symm)
-  -- `𝔪_K 𝒪_L = 𝔪_L ^ 2`
   have hmapne : (IsLocalRing.maximalIdeal (𝒪 ℚ_[2])).map
       (algebraMap (𝒪 ℚ_[2]) (𝒪 Q2sqrt2)) ≠ ⊥ := by
     rw [Ne, Ideal.map_eq_bot_iff_of_injective (FaithfulSMul.algebraMap_injective _ _)]
@@ -485,7 +483,6 @@ theorem Q2sqrt2_differentExponent : differentExponent ℚ_[2] Q2sqrt2 = 3 := by
       rw [hm]; exact (hstrictL (Nat.lt_succ_self m)).2
     rw [Q2sqrt2_ramificationIdx] at hram
     rw [hm, ← hram]
-  -- `θ` is a uniformizer: `(θ) = 𝔪_L`
   have hsqfull : Ideal.span {θ} ^ 2 = (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) ^ 2 := by
     rw [← hmapId, Ideal.span_singleton_pow, hθpow, Qpe_maximalIdeal_eq_span (p := 2),
       Ideal.map_span, Set.image_singleton]
@@ -501,7 +498,6 @@ theorem Q2sqrt2_differentExponent : differentExponent ℚ_[2] Q2sqrt2 = 3 := by
     rw [hn, hn1, pow_one]
   have hθirr : Irreducible θ :=
     IsDiscreteValuationRing.irreducible_of_span_eq_maximalIdeal θ hθne huniformizer
-  -- `Algebra.adjoin 𝒪_K {θ} = ⊤` (monogenicity, `f = 1`)
   haveI hlh : IsLocalHom (algebraMap (𝒪 ℚ_[2]) (𝒪 Q2sqrt2)) := by
     have hcomap : Ideal.comap (algebraMap (𝒪 ℚ_[2]) (𝒪 Q2sqrt2))
         (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2)) = IsLocalRing.maximalIdeal (𝒪 ℚ_[2]) :=
@@ -526,18 +522,24 @@ theorem Q2sqrt2_differentExponent : differentExponent ℚ_[2] Q2sqrt2 = 3 := by
   have hcond : conductor (𝒪 ℚ_[2]) θ = ⊤ := by
     rw [Ideal.eq_top_iff_one, mem_conductor_iff]
     intro b; rw [one_mul, hadjθ]; exact Algebra.mem_top
-  -- minimal polynomial and the different-ideal formula
   have hθ_int : IsIntegral (𝒪 ℚ_[2]) θ := Algebra.IsIntegral.isIntegral θ
   set x := algebraMap (𝒪 Q2sqrt2) Q2sqrt2 θ with hxdef
   have hxL_int : IsIntegral ℚ_[2] x := Algebra.IsIntegral.isIntegral x
-  have hx_sq : x ^ 2 = (2 : Q2sqrt2) := by rw [hxdef, ← map_pow, hθpow]; simp [hpElt2]
+  have hx_sq : x ^ 2 = (2 : Q2sqrt2) := by
+    rw [hxdef, ← map_pow, hθpow, hpElt2, hmap_two]
+    rfl
   have hmin_x : minpoly ℚ_[2] x = sqrtTwoPoly := by
     refine (minpoly.eq_of_irreducible_of_monic (Fact.out : Irreducible sqrtTwoPoly) ?_ ?_).symm
-    · simp [sqrtTwoPoly, hx_sq]
+    · change Polynomial.aeval x (X ^ 2 - C (2 : ℚ_[2])) = 0
+      simp only [Polynomial.aeval_sub, Polynomial.aeval_X, map_pow, Polynomial.aeval_C]
+      rw [hx_sq]
+      change (2 : Q2sqrt2) - (2 : Q2sqrt2) = 0
+      norm_num
     · exact (monic_X_pow_sub_C _ (by norm_num))
   have hxK : Algebra.adjoin ℚ_[2] {x} = ⊤ := by
     have hsub : (Algebra.adjoin ℚ_[2] {x}).toSubmodule = ⊤ := by
       apply Submodule.eq_top_of_finrank_eq
+      show Module.finrank ℚ_[2] ↥(Algebra.adjoin ℚ_[2] {x}) = Module.finrank ℚ_[2] Q2sqrt2
       rw [(Algebra.adjoin.powerBasis' hxL_int).finrank, Algebra.adjoin.powerBasis'_dim,
         hmin_x, Q2sqrt2_finrank]
       simp [sqrtTwoPoly]
@@ -562,8 +564,10 @@ theorem Q2sqrt2_differentExponent : differentExponent ℚ_[2] Q2sqrt2 = 3 := by
         = 2 * θ := by
       rw [hmin_O, Polynomial.derivative_sub, Polynomial.derivative_X_pow,
         Polynomial.derivative_C, sub_zero]
-      simp
-    rw [hstep, h2θ]; ring
+      norm_num [Polynomial.aeval_mul, hmap_two]
+    rw [hstep]
+    calc (2 : 𝒪 Q2sqrt2) * θ = (θ ^ 2) * θ := by rw [h2θ]
+      _ = θ ^ 3 := by ring
   have hdiff : differentIdeal (𝒪 ℚ_[2]) (𝒪 Q2sqrt2) =
       Ideal.span {Polynomial.aeval θ (Polynomial.derivative (minpoly (𝒪 ℚ_[2]) θ))} := by
     have h := conductor_mul_differentIdeal (𝒪 ℚ_[2]) ℚ_[2] Q2sqrt2 θ hxK
@@ -578,7 +582,8 @@ theorem Q2sqrt2_differentExponent : differentExponent ℚ_[2] Q2sqrt2 = 3 := by
     · exact Ideal.isUnit_iff.not.mpr (IsLocalRing.maximalIdeal.isMaximal (𝒪 Q2sqrt2)).ne_top
   show multiplicity (IsLocalRing.maximalIdeal (𝒪 Q2sqrt2))
     (differentIdeal (𝒪 ℚ_[2]) (𝒪 Q2sqrt2)) = 3
-  rw [hdiff3]; exact hfinal
+  rw [hdiff3]
+  exact hfinal
 
 /-- Discriminant exponent `d = f·δ = 3`. -/
 theorem Q2sqrt2_discriminantExponent : discriminantExponent ℚ_[2] Q2sqrt2 = 3 := by
@@ -596,4 +601,5 @@ end WildQ2
 end PadicFieldTests
 
 end
+
 
