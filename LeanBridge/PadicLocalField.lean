@@ -16,7 +16,7 @@ This file begins the formalization of the blueprint
 * `PadicField.ringOfIntegers` (`𝒪_K`): the integral closure of `ℤ_[p]` in `K`,
   together with `IsFractionRing 𝒪_K K`.
 * `PadicField.instIsDiscreteValuationRing` (blueprint `prop:padic-is-dvf`):
-  `𝒪_K` is a discrete valuation ring. This is the only fact left as `sorry`.
+  `𝒪_K` is a discrete valuation ring.
 
 Once `𝒪_K` is a DVR it is in particular a local Dedekind domain with fraction
 field `K`, so the normalized valuation `v_K : K → ℤᵐ⁰` of `def:padic-field` is
@@ -155,6 +155,18 @@ theorem isIntegral_of_spectralNorm_le_one {x : K} (hx : spectralNorm ℚ_[p] K x
   refine ⟨P, hP', ?_⟩
   rw [← Polynomial.aeval_def, ← Polynomial.aeval_map_algebraMap ℚ_[p], hP, minpoly.aeval]
 
+/-- Reverse of `isIntegral_of_spectralNorm_le_one`: an element integral over `ℤ_[p]` has
+spectral norm `≤ 1`. Over the integrally closed `ℤ_[p]` the minimal polynomial of `x` over
+`ℚ_[p]` has coefficients in `ℤ_[p]`, all of norm `≤ 1`, so the spectral value is `≤ 1`. -/
+theorem spectralNorm_le_one_of_isIntegral {x : K} (hx : IsIntegral ℤ_[p] x) :
+    spectralNorm ℚ_[p] K x ≤ 1 := by
+  have hxalg : IsIntegral ℚ_[p] x := (Algebra.IsAlgebraic.isAlgebraic x).isIntegral
+  show spectralValue (minpoly ℚ_[p] x) ≤ 1
+  rw [spectralValue_le_one_iff (minpoly.monic hxalg)]
+  intro n
+  rw [minpoly.isIntegrallyClosed_eq_field_fractions' (K := ℚ_[p]) hx, Polynomial.coeff_map]
+  simpa using PadicInt.norm_le_one ((minpoly ℤ_[p] x).coeff n)
+
 /-- The spectral norm over `ℚ_[p]` is multiplicative, hence inverts. -/
 theorem spectralNorm_inv (x : K) :
     spectralNorm ℚ_[p] K x⁻¹ = (spectralNorm ℚ_[p] K x)⁻¹ := by
@@ -204,6 +216,27 @@ lemma maximalIdeal_ne_bot : 𝓂[K] ≠ ⊥ :=
 def valuation := IsDedekindDomain.HeightOneSpectrum.valuation (R := 𝒪[K]) K <|
   ⟨𝓂[K], IsLocalRing.maximalIdeal.isMaximal 𝒪[K] |>.isPrime, maximalIdeal_ne_bot K⟩
 
+/-- The adic valuation of `𝒪[K]` (with respect to its unique maximal ideal) is `≤ 1` exactly on
+the ring of integers. Since `𝒪[K]` is a DVR, its only height-one prime is `𝓂[K]`, so the
+"all valuations `≤ 1`" criterion for integrality reduces to this single valuation. -/
+theorem valuation_le_one_iff_isIntegral {x : K} :
+    valuation K x ≤ 1 ↔ IsIntegral ℤ_[p] x := by
+  constructor
+  · intro hle
+    have hall : ∀ v : IsDedekindDomain.HeightOneSpectrum 𝒪[K],
+        (IsDedekindDomain.HeightOneSpectrum.valuation K v) x ≤ 1 := by
+      intro v
+      have hv : v = ⟨𝓂[K], (IsLocalRing.maximalIdeal.isMaximal 𝒪[K]).isPrime,
+          maximalIdeal_ne_bot K⟩ :=
+        IsDedekindDomain.HeightOneSpectrum.ext (IsLocalRing.eq_maximalIdeal inferInstance)
+      rw [hv]; exact hle
+    obtain ⟨r, hr⟩ := IsDedekindDomain.HeightOneSpectrum.mem_integers_of_valuation_le_one K x hall
+    rw [← hr]
+    have hr2 : IsIntegral ℤ_[p] (r : K) := r.2
+    simpa using hr2
+  · intro hint
+    exact IsDedekindDomain.HeightOneSpectrum.valuation_le_one _ (⟨x, hint⟩ : 𝒪[K])
+
 instance : ValuativeRel K := .ofValuation <| valuation K
 
 instance : ValuativeRel.IsNontrivial K := by
@@ -226,29 +259,63 @@ instance : IsUltrametricDist K :=
 -- theorem valuation_eq_nnnorm (x : K): valuation K x = NormedField.valuation x := by
 -- instance : TopologicalSpace K := (ValuativeRel.valuation K).subgroups_basis.topology
 
-#check norm_le_spectralNorm
-#check Valuation.toTopologicalSpace_eq
-
--- variable (R : Type*) [Ring R] [ValuativeRel R] {Γ₀ : Type*} [LinearOrderedCommGroupWithZero Γ₀]
--- variable [_t : TopologicalSpace R] [IsValuativeTopology R] (v : Valuation R Γ₀) [v.Compatible]
---   [TopologicalSpace K] [IsValuativeTopology K]
--- theorem toTopologicalSpace_eq :
---     _t = v.subgroups_basis.topology := by
---   let u := IsTopologicalAddGroup.rightUniformSpace R
---   let := isUniformAddGroup_of_addCommGroup (G := R)
---   exact congrArg (fun u ↦ @UniformSpace.toTopologicalSpace R u) v.toUniformSpace_eq
-
--- #check (IsTopologicalAddGroup.rightUniformSpace R)
-variable (L : Type) [NormedField L] in
-#synth TopologicalSpace L
-#check Metric.mk_uniformity_basis
-#synth ContinuousConstVAdd K K
--- #print toTopologicalSpace_eq
+open scoped NNReal in
+/-- The spectral-norm topology on `K` agrees with the valuative topology of the adic valuation
+`valuation K`: the norm balls `{y | ‖y‖ < ε}` and the valuation balls `{z | v z < γ}` form
+mutually cofinal neighborhood bases of `0`. This holds because the spectral norm and the adic
+valuation of `𝒪[K]` are equivalent valuations (both have `𝒪[K]` as their unit ball). -/
 instance : IsValuativeTopology K := by
-    apply IsValuativeTopology.of_zero _
-    intro s
-    simp [Metric.mem_nhds_iff, Metric.ball, dist]
-    rw [Filter.hasBasis_iff.mp <| ?_]
+  letI : NontriviallyNormedField K := spectralNorm.nontriviallyNormedField ℚ_[p] K
+  let w : Valuation K ℝ≥0 :=
+    { toFun := fun x => ‖x‖₊
+      map_zero' := nnnorm_zero
+      map_one' := nnnorm_one
+      map_mul' := nnnorm_mul
+      map_add_le_max' := IsUltrametricDist.norm_add_le_max }
+  haveI : (valuation K).Compatible := Valuation.Compatible.ofValuation (valuation K)
+  have hwvH : w.IsEquiv (valuation K) := by
+    rw [Valuation.isEquiv_iff_val_le_one]
+    intro x
+    rw [valuation_le_one_iff_isIntegral]
+    have hwx : ((w x : ℝ≥0) : ℝ) = spectralNorm ℚ_[p] K x := rfl
+    constructor
+    · intro h
+      refine isIntegral_of_spectralNorm_le_one (K := K) ?_
+      rw [← hwx]; exact_mod_cast h
+    · intro h
+      have h1 : spectralNorm ℚ_[p] K x ≤ 1 := spectralNorm_le_one_of_isIntegral (K := K) h
+      rw [← hwx] at h1
+      exact_mod_cast h1
+  have hequiv : w.IsEquiv (ValuativeRel.valuation K) :=
+    hwvH.trans (ValuativeRel.isEquiv (valuation K) (ValuativeRel.valuation K))
+  have hlt : ∀ x y : K,
+      ‖x‖ < ‖y‖ ↔ ValuativeRel.valuation K x < ValuativeRel.valuation K y := by
+    intro x y
+    have hb : (‖x‖ < ‖y‖) ↔ (w x < w y) := by
+      show (‖x‖ < ‖y‖) ↔ ((‖x‖₊ : ℝ≥0) < ‖y‖₊)
+      rw [← NNReal.coe_lt_coe]; rfl
+    rw [hb]
+    exact hequiv.lt_iff_lt
+  apply IsValuativeTopology.of_zero
+  intro s
+  rw [Metric.mem_nhds_iff]
+  constructor
+  · rintro ⟨ε, hε, hsub⟩
+    obtain ⟨a, ha0, haε⟩ := NormedField.exists_norm_lt K hε
+    have hane : a ≠ 0 := norm_pos_iff.mp ha0
+    refine ⟨Units.mk0 (ValuativeRel.valuation K a) ((Valuation.ne_zero_iff _).mpr hane),
+      fun z hz => hsub ?_⟩
+    simp only [Units.val_mk0, Set.mem_setOf_eq] at hz
+    have hzn : ‖z‖ < ‖a‖ := (hlt z a).mpr hz
+    simpa only [Metric.mem_ball, dist_zero_right] using hzn.trans haε
+  · rintro ⟨γ, hsub⟩
+    obtain ⟨a, ha⟩ := ValuativeRel.valuation_surjective
+      (K := K) (γ : ValuativeRel.ValueGroupWithZero K)
+    have hane : a ≠ 0 := fun h => γ.ne_zero (by rw [← ha, h, map_zero])
+    refine ⟨‖a‖, norm_pos_iff.mpr hane, fun y hy => hsub ?_⟩
+    simp only [Metric.mem_ball, dist_zero_right] at hy
+    have hyv : ValuativeRel.valuation K y < ValuativeRel.valuation K a := (hlt y a).mp hy
+    simpa only [Set.mem_setOf_eq, ← ha] using hyv
     -- simp [neg_add_eq_sub, ← (valuation R).exists_setOf_restrict_le_iff,
     --   ← restrict_lt_iff_lt_embedding]
 
