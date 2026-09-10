@@ -1,0 +1,27 @@
+{
+  "note": "Preserved Fuse editor snapshots. Some are older than the current branch; compare before restoring. Original branch contents were not overwritten.",
+  "drafts": [
+    {
+      "workspace_id": "3a516242-a005-4c4b-ae4c-cef66d6bdd24",
+      "original_branch": "refs/heads/numina/test",
+      "original_blueprint_file": "blueprint/src/content.tex",
+      "blueprint_name": "test",
+      "project_subdir": "",
+      "saved_at": "2026-07-02 15:33:33.070165+00:00",
+      "revision": 1,
+      "audit_status": "differs_remote",
+      "recovery_file": ".numina-recovery/2026-09-10/editor-drafts/3a516242-a005-4c4b-ae4c-cef66d6bdd24.tex"
+    },
+    {
+      "workspace_id": "8e6f6eaa-1325-42c9-b202-621caf740b5d",
+      "original_branch": "refs/heads/numina/diffexponent",
+      "original_blueprint_file": "blueprint/src/content.tex",
+      "blueprint_name": "diffexponent",
+      "project_subdir": "",
+      "saved_at": "2026-07-01 18:33:02.496810+00:00",
+      "revision": 1,
+      "audit_status": "differs_remote",
+      "recovery_file": ".numina-recovery/2026-09-10/editor-drafts/8e6f6eaa-1325-42c9-b202-621caf740b5d.tex"
+    }
+  ]
+}
